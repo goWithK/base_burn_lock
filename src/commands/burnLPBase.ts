@@ -35,7 +35,9 @@ async function getCAbyDeployer(deployer: string){
     ).then(response => {
         let isLatest = false;
         for (let i = 0; i < response['result'].length; i++) {
-            if (response['result'][i]['input'].slice(0,10) === '0x60806040' && isLatest === false) {
+            if (response['result'][i]['input'].slice(0,10) === '0x60806040'
+                || response['result'][i]['input'].slice(0,10) === '0x61016060'
+                && isLatest === false) {
                 const createTxn = response['result'][i];
                 const getCa = (keyName: keyof typeof createTxn) => {
                     return createTxn[keyName]
