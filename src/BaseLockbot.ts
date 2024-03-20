@@ -121,7 +121,6 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
         if(trueOrFalse) {
             const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
             const UrlLockTokenMoon = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${Number(currentBlock)-3}&toBlock=${currentBlock}&address=0x77110f67C0EF3c98c43570BADe06046eF6549876&topic0=0x531cba00a411ade37b4ca8175d92c94149f19536bd8e5a83d581aa7f040d192e&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY}`
-            // const UrlLockTokenMoon = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=12065346&toBlock=${currentBlock}&address=0x77110f67C0EF3c98c43570BADe06046eF6549876&topic0=0x531cba00a411ade37b4ca8175d92c94149f19536bd8e5a83d581aa7f040d192e&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY2}`
 
             let info = await fetch(UrlLockTokenMoon).then(
                 response => response.json()
@@ -132,8 +131,13 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
                         let output = [];
                         for (let i = 0; i < data['result'].length;  i++) {
                             const txHash = data['result'][i]['transactionHash'];
-                            const lockInfo = await getLockInfoMoon(txHash);
-                            output.push(lockInfo)
+                            if (txHash) {
+                                const lockInfo = await getLockInfoMoon(txHash);
+                                output.push(lockInfo)
+                            } else {
+                                console.log(data['result'][i])
+                            }
+                            
                         }
     
                         return output
