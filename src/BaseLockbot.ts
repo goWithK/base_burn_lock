@@ -126,21 +126,22 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
                 response => response.json()
             ).then(
                 async data => {
-                    if (data['result'] !== 'Error!' && data['result'].length > 0) {
-                        // console.log('Lock: ', data['result'])
-                        let output = [];
-                        for (let i = 0; i < data['result'].length;  i++) {
-                            const txHash = data['result'][i]['transactionHash'];
-                            if (txHash) {
-                                const lockInfo = await getLockInfoMoon(txHash);
-                                output.push(lockInfo)
-                            } else {
-                                console.log(data['result'])
+                    if (data['result']){
+                        if (data['result'] !== 'Error!' && data['result'].length > 0) {
+                            // console.log('Lock: ', data['result'])
+                            let output = [];
+                            for (let i = 0; i < data['result'].length;  i++) {
+                                const txHash = data['result'][i]['transactionHash'];
+                                if (txHash) {
+                                    const lockInfo = await getLockInfoMoon(txHash);
+                                    output.push(lockInfo)
+                                } else {
+                                    console.log(data['result'])
+                                }
                             }
-                            
+        
+                            return output
                         }
-    
-                        return output
                     }
                 }
             );
