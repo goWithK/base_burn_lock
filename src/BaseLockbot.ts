@@ -107,8 +107,8 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
                     }
                 }
             }
-            delay(5000);
-            getBurnInfo(trueOrFalse, chatId);
+            await delay(5000);
+            await getBurnInfo(trueOrFalse, chatId);
         }
         
     } catch (error) {
@@ -172,8 +172,8 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
                     }
                 }
             }
-            delay(5000);
-            getLockInfo(trueOrFalse, chatId);
+            await delay(5000);
+            await getLockInfo(trueOrFalse, chatId);
         }
         
     } catch (error) {
@@ -185,7 +185,8 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
 bot.command('start', async (ctx) => {
     const chatId = ctx.msg.chat.id;
     await getLockInfo(true, chatId); 
-    await getBurnInfo(true, chatId);      
+    await getBurnInfo(true, chatId);  
+    await delay(1000);    
 });
 
 //HELP COMMAND
