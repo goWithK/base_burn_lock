@@ -27,7 +27,7 @@ async function getLpPercent(amountLpInt: number, lpAddress: any, deployer: strin
 
 async function getCAbyDeployer(deployer: string){
     const currentBlock = web3.eth.getBlockNumber().then(value => { return Number(value) });
-    const urlGetCA = `https://api.basescan.org/api?module=account&action=txlist&address=${deployer}&page=1&offset=50&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY2}`
+    const urlGetCA = `https://api.basescan.org/api?module=account&action=txlist&address=${deployer}&page=1&offset=50&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY3}`
     let isRenounced = false;
 
     const CA = await fetch(urlGetCA).then(
@@ -71,7 +71,7 @@ async function getTotalHolders(CA: string) {
 
 async function getInitialLp(CA: string) {
     const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-    const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&topic0=0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925&topic0_1_opr=and&topic1=0x000000000000000000000000${CA.slice(2,CA.length)}&topic0_2_opr=and&topic2=0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY2}`
+    const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&topic0=0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925&topic0_1_opr=and&topic1=0x000000000000000000000000${CA.slice(2,CA.length)}&topic0_2_opr=and&topic2=0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
     // const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=0x4200000000000000000000000000000000000006&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY2}`
     // const UrlGetTopic2 = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=${CA}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x000000000000000000000000${CA.slice(2,CA.length)}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY2}`
 
