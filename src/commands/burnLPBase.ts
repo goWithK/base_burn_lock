@@ -1,5 +1,5 @@
 import Web3, { Bytes } from 'web3';
-import {ethers} from 'ethers';
+import { ethers } from 'ethers';
 import OM_ABI from '../JSON/Only_moons_ABI.json';
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -17,7 +17,7 @@ async function getLpPercent(amountLpInt: number, lpAddress: any, deployer: strin
         response => response.json()
     ).then(
         async data => {
-            const initLp : number = Number(data['result'][0]['value']);
+            const initLp: number = Number(data['result'][0]['value']);
             const lpPerc = Number(amountLpInt) / initLp * 100;
             return lpPerc
         }
@@ -25,7 +25,7 @@ async function getLpPercent(amountLpInt: number, lpAddress: any, deployer: strin
     return lpPercent
 }
 
-async function getCAbyDeployer(deployer: string){
+async function getCAbyDeployer(deployer: string) {
     const currentBlock = web3.eth.getBlockNumber().then(value => { return Number(value) });
     const urlGetCA = `https://api.basescan.org/api?module=account&action=txlist&address=${deployer}&page=1&offset=50&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY3}`
     let isRenounced = false;
@@ -35,8 +35,8 @@ async function getCAbyDeployer(deployer: string){
     ).then(response => {
         let isLatest = false;
         for (let i = 0; i < response['result'].length; i++) {
-            if (response['result'][i]['input'].slice(0,10) === '0x60806040'
-                || response['result'][i]['input'].slice(0,10) === '0x61016060'
+            if (response['result'][i]['input'].slice(0, 10) === '0x60806040'
+                || response['result'][i]['input'].slice(0, 10) === '0x61016060'
                 && isLatest === false) {
                 const createTxn = response['result'][i];
                 const getCa = (keyName: keyof typeof createTxn) => {
@@ -44,12 +44,12 @@ async function getCAbyDeployer(deployer: string){
                 };
                 isLatest = true;
                 return getCa('contractAddress')
-            } else if (response['result'][i]['input'].slice(0,10) === '0x715018a6') {
+            } else if (response['result'][i]['input'].slice(0, 10) === '0x715018a6') {
                 isRenounced = true;
             }
         }
     })
-    
+
     return [CA, isRenounced]
 }
 
@@ -57,23 +57,23 @@ async function getTotalHolders(CA: string) {
     const requestHeaders: HeadersInit = new Headers();
     requestHeaders.set('accept', 'application/json');
     requestHeaders.set('x-api-key', `${process.env.CHAINBASE_API_KEY}`);
-    const chainId = await web3.eth.getChainId().then(value => {return Number(value)});
+    const chainId = await web3.eth.getChainId().then(value => { return Number(value) });
     // console.log('Connected chain: ', chainId);
     const totalHolders = await fetch(`https://api.chainbase.online/v1/token/holders?chain_id=${chainId}&contract_address=${CA}&page=1&limit=20`, {
         method: 'GET',
         headers: requestHeaders
     }).then(response => response.json())
-    .then(data => {
-        return data.count
-    })
-    .catch(error => console.error(error));
+        .then(data => {
+            return data.count
+        })
+        .catch(error => console.error(error));
 
     return totalHolders
 }
 
 async function getInitialLp(CA: string) {
     const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-    const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&topic0=0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925&topic0_1_opr=and&topic1=0x000000000000000000000000${CA.slice(2,CA.length)}&topic0_2_opr=and&topic2=0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
+    const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&topic0=0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925&topic0_1_opr=and&topic1=0x000000000000000000000000${CA.slice(2, CA.length)}&topic0_2_opr=and&topic2=0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
 
     let initLP = await fetch(UrlInitLp).then(
         response => response.json()
@@ -81,9 +81,9 @@ async function getInitialLp(CA: string) {
         async data => {
             console.log(data)
             if (data) {
-                return parseInt(data['result'][0]['data'], 16)/10**18
+                return parseInt(data['result'][0]['data'], 16) / 10 ** 18
             }
-        } 
+        }
     );
 
     return initLP
@@ -93,16 +93,16 @@ async function getTopHolders(deployer: string, CA: string, n: number) {
     const requestHeaders: HeadersInit = new Headers();
     requestHeaders.set('accept', 'application/json');
     requestHeaders.set('x-api-key', `${process.env.CHAINBASE_API_KEY}`);
-    const chainId = await web3.eth.getChainId().then(value => {return Number(value)});
+    const chainId = await web3.eth.getChainId().then(value => { return Number(value) });
     // console.log('Connected chain: ', chainId);
     const holderAddress = await fetch(`https://api.chainbase.online/v1/token/top-holders?chain_id=${chainId}&contract_address=${CA}&page=1&limit=20`, {
         method: 'GET',
         headers: requestHeaders
     }).then(response => response.json())
-    .then(data => {
-        return data.data
-    })
-    .catch(error => console.error(error));
+        .then(async data => {
+            return await data.data
+        })
+        .catch(error => console.error(error));
 
     const abiBalanceof = [
         {
@@ -141,32 +141,41 @@ async function getTopHolders(deployer: string, CA: string, n: number) {
     let contract = new web3.eth.Contract(abiBalanceof, CA);
     let totalSupply = await contract.methods.totalSupply().call();
     let holdersBalance: any = {};
-    let holderLimit = holderAddress.length;
-    if (n < holderAddress.length) {
-        holderLimit = n
-    }
-    for (let i = 0; i < holderLimit; i++) {
-        if (holderAddress[i]['wallet_address'] === deployer) {
-            let balance = holderAddress[i]['amount'];
-            holdersBalance['Creator'] = (Number(balance)/Number(totalSupply)*100).toFixed(2);
-        } else if (holderAddress[i]['wallet_address'] !== '0x000000000000000000000000000000000000dead') {
-            let balance = holderAddress[i]['amount'];
-            holdersBalance[holderAddress[i]['wallet_address']] = (Number(balance)/Number(totalSupply)*100).toFixed(2);
+    if (holderAddress) {
+        let holderLimit = holderAddress.length;
+        if (n < holderAddress.length) {
+            holderLimit = n
         }
-    }
-    let clog = await contract.methods.balanceOf(CA).call();
-    let clogPerc = (Number(clog)/Number(totalSupply)*100).toFixed(2);
-    if (Number(clogPerc) > 100) {
-        clogPerc = 'Infinity'
-    }
+        for (let i = 0; i < holderLimit; i++) {
+            if (holderAddress[i]['wallet_address'] === deployer) {
+                let balance = holderAddress[i]['original_amount'];
+                holdersBalance['Creator'] = (Number(balance) / Number(totalSupply) * 100).toFixed(2);
+            } else if (holderAddress[i]['wallet_address'] !== '0x000000000000000000000000000000000000dead') {
+                let balance = holderAddress[i]['original_amount'];
+                holdersBalance[holderAddress[i]['wallet_address']] = (Number(balance) / Number(totalSupply) * 100).toFixed(2);
+            }
+        }
+        let clog = await contract.methods.balanceOf(CA).call();
+        let clogPerc = (Number(clog) / Number(totalSupply) * 100).toFixed(2);
+        if (Number(clogPerc) > 100) {
+            clogPerc = 'Infinity'
+        }
 
-    return [holdersBalance, clogPerc]
+        return [holdersBalance, clogPerc]
+    } else {
+        let clog = await contract.methods.balanceOf(CA).call();
+        let clogPerc = (Number(clog) / Number(totalSupply) * 100).toFixed(2);
+        if (Number(clogPerc) > 100) {
+            clogPerc = 'Infinity'
+        }
+        return [{ 'undefined': 0 }, clogPerc]
+    }
 }
 
 export async function getBurnTx(txHash: Bytes) {
     const txData = await web3.eth.getTransaction(txHash);
     const txInput = txData['input'].toString();
-    
+
     if (txInput.slice(0, 10) === '0xa9059cbb') {
         console.log('Burn tx', txHash)
         const deployer = txData['from'].toString();
@@ -201,18 +210,18 @@ export async function getLockInfoMoon(txHash: any) {
 
     const inter = new ethers.Interface(OM_ABI);
     const value = ethers.parseEther("1.0");
-    const decodedInput = inter.parseTransaction({ data: txInput, value});
+    const decodedInput = inter.parseTransaction({ data: txInput, value });
 
     if (decodedInput) {
         const lpAddress = decodedInput['args'][0];
         const lockAmount = decodedInput['args'][1];
         const unlockTimestamp = Number(decodedInput['args'][2]);
         let current = new Date();
-        let date = current.getFullYear()+'-'+('0' + (current.getMonth()+1)).slice(-2)+'-'+('0' + current.getDate()).slice(-2) ;
+        let date = current.getFullYear() + '-' + ('0' + (current.getMonth() + 1)).slice(-2) + '-' + ('0' + current.getDate()).slice(-2);
         let time = current.getHours() + ":00:00";
-        let currentTime = Date.parse(date+'T'+time);
+        let currentTime = Date.parse(date + 'T' + time);
 
-        let lockDays = (unlockTimestamp-Number(currentTime)/1000) / (60 * 60 * 24);
+        let lockDays = (unlockTimestamp - Number(currentTime) / 1000) / (60 * 60 * 24);
         const lockPercent = await getLpPercent(lockAmount, lpAddress, deployer)
         const CA_renou = await getCAbyDeployer(deployer);
         const totalHolders = await getTotalHolders(CA_renou[0]);
@@ -227,7 +236,7 @@ export async function getLockInfoMoon(txHash: any) {
         console.log('Total Holders: ', totalHolders)
         console.log('Renounced: ', CA_renou[1])
         // console.log(holders_clog)
-        
+
         return [CA_renou[0], lockDays, lockPercent, totalHolders, holdersBalance, clog, CA_renou[1]]
     }
 }
