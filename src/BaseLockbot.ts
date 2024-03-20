@@ -135,7 +135,7 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
                                 const lockInfo = await getLockInfoMoon(txHash);
                                 output.push(lockInfo)
                             } else {
-                                console.log(data['result'][i])
+                                console.log(data['result'])
                             }
                             
                         }
