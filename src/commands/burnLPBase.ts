@@ -72,8 +72,6 @@ async function getTotalHolders(CA: string) {
 async function getInitialLp(CA: string) {
     const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
     const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&topic0=0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925&topic0_1_opr=and&topic1=0x000000000000000000000000${CA.slice(2,CA.length)}&topic0_2_opr=and&topic2=0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
-    // const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=0x4200000000000000000000000000000000000006&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY2}`
-    // const UrlGetTopic2 = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=${CA}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x000000000000000000000000${CA.slice(2,CA.length)}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY2}`
 
     let initLP = await fetch(UrlInitLp).then(
         response => response.json()
@@ -239,49 +237,6 @@ export async function getLockInfoMoon(txHash: any) {
 //uniswap base address: 0x28AD36f1869d4c1Cc90083059d95C76C6b10A01e
 //uni router v2: 0x4752ba5DBc23f44D87826276BF6Fd6b1C372aD24
 //pnacake router: 0x8cFe327CEc66d1C090Dd72bd0FF11d690C33a2Eb
-// const currentBlock = web3.eth.getBlockNumber().then(value => { return Number(value) });
-// const UrlLockTokenMoon = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=11948400&toBlock=${currentBlock}&address=0x77110f67C0EF3c98c43570BADe06046eF6549876&topic0=0x531cba00a411ade37b4ca8175d92c94149f19536bd8e5a83d581aa7f040d192e&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY}`
-// async function getLockInfo(trueOrFalse: boolean, chatId: any) {
-//     try {
-//         if(trueOrFalse) {
-//             let info = await fetch(UrlLockTokenMoon).then(
-//                 response => response.json()
-//             ).then(
-//                 async data => {
-//                     if (data['result'].length > 1) {
-//                         let output = data['result'].forEach(async (item: any) => {
-//                             const txHash = item['transactionHash'];
-//                             return await getLockInfoMoon(txHash)
-//                         }) 
-//                         return output
-
-//                     } else if (data['result'].length === 1){
-//                         console.log(data)
-//                         let output = await getLockInfoMoon(data['result'][0]['transactionHash'])
-//                         return output
-//                     }
-//                 }
-//             );
-            
-//             if (info){
-//                 let ca_msg = `<a href="https://basescan.org/address/${info[0]}">CA:</a> <b>${info[0]}</b>`;
-//                 let lock_msg = `<p>LP: <strong>${info[2]} % of Liquidity Locked for ${info[1]} days</strong>.</p>`
-//                 let holder_msg = 'Holders: ';
-//                 let holderAddress = Object.keys(info[2]);
-//                 for (let i=0; i < holderAddress.length; i++) {
-//                     holder_msg.concat(`<a href="https://basescan.org/address/${holderAddress[i]}">${info[2][holderAddress[i]]}</a> |`)
-//                 }
-//                 let tg_msg = ca_msg + lock_msg + holder_msg;
-//                 console.log(tg_msg)
-//             }
-//             getLockInfo(trueOrFalse, chatId);
-//         }
-        
-//     } catch (error) {
-//         console.log(error)
-//     }
-// }
-// getLockInfo(true, 1)
 
 //lock wallet trustswap: 0xE2fE530C047f2d85298b07D9333C05737f1435fB
 //lock wallet pinksale: 0x71B5759d73262FBb223956913ecF4ecC51057641 
