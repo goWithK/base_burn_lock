@@ -1,0 +1,25 @@
+{
+  "name": "base_burn_lock_bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@grammyjs/conversations": "^1.2.0",
+    "@grammyjs/emoji": "^1.2.0",
+    "@grammyjs/parse-mode": "^1.9.0",
+    "@grammyjs/ratelimiter": "^1.2.0",
+    "@grammyjs/runner": "^2.0.3",
+    "@grammyjs/transformer-throttler": "^1.2.1",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.11.1",
+    "grammy": "^1.20.3",
+    "ts-node": "^10.9.2",
+    "ts-node-dev": "^2.0.0",
+    "web3": "^4.6.0"
+  }
+}
