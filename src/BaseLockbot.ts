@@ -87,7 +87,7 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
                         let ca_msg = `<a href="https://basescan.org/address/${eachInfo[0]}">CA:</a> <b>${eachInfo[0]}</b>\n \n`;
                         let burn_msg = `Liquidity: <b> <strong>${eachInfo[1]}% of Liquidity Burnt</strong>.</b>\n`
                         let total_msg = `Total holders: ${eachInfo[2]} \n`;
-                        let ca_balance_msg = `Contract Balance: ${eachInfo[4]} \n`;
+                        let ca_balance_msg = `Clog: ${eachInfo[4]} \n`;
                         let renounced_msg = `Renounced: Not yet \n`
                         if (eachInfo[5]) {renounced_msg = `Renounced: Yes \n`}
                         // let initLp_msg = `Init LP: ${eachInfo[6]}`
@@ -153,7 +153,7 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
                         let ca_msg = `<a href="https://basescan.org/address/${eachInfo[0]}">CA:</a> <b>${eachInfo[0]}</b>\n \n`;
                         let lock_msg = `<b>Liquidity: <strong>${eachInfo[2]} % of Liquidity Locked for ${Math.round(eachInfo[1])} days</strong>.</b>\n`;
                         let total_msg = `Total holders: ${eachInfo[2]} \n`;
-                        let ca_balance_msg = `Contract Balance: ${eachInfo[5]} \n`;
+                        let ca_balance_msg = `Clog: ${eachInfo[5]} \n`;
                         let renounced_msg = `Renounced: Not yet\n`
                         if (eachInfo[6]) {renounced_msg = `Renounced: Yes\n`}
                         // let initLp_msg = `Init LP: ${eachInfo[6]}`
