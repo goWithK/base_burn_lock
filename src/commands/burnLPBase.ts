@@ -7,7 +7,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(`${process.env.ALCHEMY_END
 // const txHash = '0xb7b960e3269081870e0cc4984b362e8354e2fdeababb275a26a277b819433657';
 // const txHash = '0x215a971ae7d6d18de7dcb13f2ff12d7e96cd763de1de1c00d217c8d77f7db349';
 // const txHash = '0x795193da34128a9b81ab7c1cf3ee52f6f07e4341dc5cfc609ea7c6199ea6a312'; //Burn
-// renounced status, added LP
+// added LP, token name, token symbol, display holders, sticker, buy tax, sell tax, MC
 
 
 async function getLpPercent(amountLpInt: number, lpAddress: any, deployer: string) {
