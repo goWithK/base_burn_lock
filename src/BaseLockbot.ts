@@ -70,14 +70,15 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
                     let output = [];
                     for (let i = 0; i < data['result'].length;  i++) {
                         const txHash = data['result'][i]['transactionHash'];
-                        const lockInfo = await getBurnTx(txHash);
-                        output.push(lockInfo)
-                    }
+                        const burnInfo = await getBurnTx(txHash);
+                        output.push(burnInfo)
 
-                    return output
+                        return output
+                    }
                 }
             } 
         );
+        console.log('Info burn:', info)
         if (info){
             for (let i = 0; i < info.length; i++) {
                 let eachInfo = info[i];
@@ -86,18 +87,18 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
                     let ca_msg = `<a href="https://basescan.org/address/${eachInfo[0]}">CA:</a> <b>${eachInfo[0]}</b>\n \n`;
                     let burn_msg = `Liquidity: <b> <strong>${eachInfo[1]}% of Liquidity Burnt</strong>.</b>\n`
                     let total_msg = `Total holders: ${eachInfo[2]} \n`;
-                    let ca_balance_msg = `Clog: ${eachInfo[4]} %\n`;
+                    let ca_balance_msg = `Contract Balance: ${eachInfo[4]} \n`;
                     let renounced_msg = `Renounced: Not yet \n`
                     if (eachInfo[5]) {renounced_msg = `Renounced: Yes \n`}
-                    // let initLp_msg = `Init LP: ${eachInfo[6]}`
+                    let initLp_msg = `Init LP: ${eachInfo[6]} ETH\n`;
                     let holderAddress = Object.keys(eachInfo[3]);
                     let list_msg = [];
-                    let holderLimit = 10;
+                    let holderLimit = 5;
                     if (holderLimit > holderAddress.length) { holderLimit = holderAddress.length}
                     for (let i=0; i < holderLimit; i++) {
                         list_msg.push(`<a href="https://basescan.org/address/${holderAddress[i]}">${eachInfo[3][holderAddress[i]]}</a>`)
                     }
-                    let tg_msg = ca_msg + burn_msg + total_msg + ca_balance_msg + renounced_msg + holder_msg + list_msg.join(' | ');
+                    let tg_msg = ca_msg + burn_msg + total_msg + ca_balance_msg + renounced_msg + initLp_msg + holder_msg + list_msg.join(' | ');
                     await bot.api.sendMessage(
                         chatId,
                         tg_msg,
@@ -106,7 +107,7 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
                 }
             }
         }
-        await delay(5000);
+        await delay(4500);
         await getBurnInfo(trueOrFalse, chatId);
     }
 }
@@ -120,45 +121,40 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
             response => response.json()
         ).then(
             async data => {
-                if (data['result']){
-                    if (data['result'] !== 'Error!' && data['result'].length > 0) {
-                        // console.log('Lock: ', data['result'])
-                        let output = [];
-                        for (let i = 0; i < data['result'].length;  i++) {
-                            const txHash = data['result'][i]['transactionHash'];
-                            if (txHash) {
-                                const lockInfo = await getLockInfoMoon(txHash);
-                                output.push(lockInfo)
-                            } else {
-                                console.log(data['result'])
-                            }
-                        }
-    
+                let output = [];
+                if (data['result'] !== 'Error!' && data['result'].length > 0) {
+                    // console.log('Lock: ', data['result'])
+                    for (let i = 0; i < data['result'].length;  i++) {
+                        const txHash = data['result'][i]['transactionHash'];
+                        const lockInfo = await getLockInfoMoon(txHash);
+                        output.push(lockInfo)
+
                         return output
                     }
                 }
             }
         );
+        console.log('Info lock:', info)
         if (info){
             var holder_msg = 'Holders: ';
             for (let i = 0; i < info.length; i++) {
                 let eachInfo = info[i];
                 if (eachInfo){
                     let ca_msg = `<a href="https://basescan.org/address/${eachInfo[0]}">CA:</a> <b>${eachInfo[0]}</b>\n \n`;
-                    let lock_msg = `<b>Liquidity: <strong>${eachInfo[2]}% of Liquidity Locked for ${Math.round(eachInfo[1])} days</strong>.</b>\n`;
+                    let lock_msg = `<b>Liquidity: <strong>${eachInfo[2]} % of Liquidity Locked for ${eachInfo[1]} days</strong>.</b>\n`;
                     let total_msg = `Total holders: ${eachInfo[2]} \n`;
-                    let ca_balance_msg = `Clog: ${eachInfo[5]} %\n`;
+                    let ca_balance_msg = `Contract Balance: ${eachInfo[5]}% \n`;
                     let renounced_msg = `Renounced: Not yet\n`
                     if (eachInfo[6]) {renounced_msg = `Renounced: Yes\n`}
-                    // let initLp_msg = `Init LP: ${eachInfo[6]}`
+                    let initLp_msg = `Init LP: ${eachInfo[7]} ETH \n`;
                     let holderAddress = Object.keys(eachInfo[4]);
                     let list_msg = [];
-                    let holderLimit = 10;
+                    let holderLimit = 5;
                     if (holderLimit > holderAddress.length) { holderLimit = holderAddress.length}
                     for (let i=0; i < holderLimit; i++) {
                         list_msg.push(`<a href="https://basescan.org/address/${holderAddress[i]}">${eachInfo[4][holderAddress[i]]}%</a>`)
                     }
-                    let tg_msg = ca_msg + lock_msg + total_msg + ca_balance_msg + renounced_msg + holder_msg + list_msg.join(' | ');
+                    let tg_msg = ca_msg + lock_msg + total_msg + ca_balance_msg + renounced_msg + initLp_msg + holder_msg + list_msg.join(' | ');
                     await bot.api.sendMessage(
                         chatId,
                         tg_msg,
@@ -167,18 +163,23 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
                 }
             }
         }
-        await delay(5000);
+        await delay(4500);
         await getLockInfo(trueOrFalse, chatId);
     }
 }
 
 //START COMMAND
 bot.command('start', async (ctx) => {
+    const chatId = ctx.msg.chat.id;
     try {
-        const chatId = ctx.msg.chat.id;
-        await getLockInfo(true, chatId);
+        await getLockInfo(true, chatId);  
+        await delay(500); 
+    } catch (error) {
+        console.log(error)
+    }
+    try {
         await getBurnInfo(true, chatId);  
-        await delay(1000); 
+        await delay(500); 
     } catch (error) {
         console.log(error)
     }

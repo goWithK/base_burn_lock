@@ -37,6 +37,7 @@ async function getCAbyDeployer(deployer: string) {
         for (let i = 0; i < response['result'].length; i++) {
             if (response['result'][i]['input'].slice(0, 10) === '0x60806040'
                 || response['result'][i]['input'].slice(0, 10) === '0x61016060'
+                || response['result'][i]['input'].slice(0,10) === '0x60a06040'
                 && isLatest === false) {
                 const createTxn = response['result'][i];
                 const getCa = (keyName: keyof typeof createTxn) => {
@@ -71,22 +72,80 @@ async function getTotalHolders(CA: string) {
     return totalHolders
 }
 
-async function getInitialLp(CA: string) {
+async function getInitialLp(CA: string, deployer: string) {
     const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-    const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&topic0=0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e5b200ac8c7c3b925&topic0_1_opr=and&topic1=0x000000000000000000000000${CA.slice(2, CA.length)}&topic0_2_opr=and&topic2=0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
+    const UrlGetRouterAddress = `https://api.basescan.org/api?module=account&action=tokentx&fromBlock=0&toBlock=${currentBlock}&
+    contractAddress=${CA}&address=${CA}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
 
-    let initLP = await fetch(UrlInitLp).then(
+    let routerAddress = await fetch(UrlGetRouterAddress).then(
         response => response.json()
     ).then(
         async data => {
-            console.log(data)
-            if (data) {
-                return parseInt(data['result'][0]['data'], 16) / 10 ** 18
+            var address = [];
+            for (let i=0; i < data['result'].length; i++) {
+                let eachInfo = data['result'][i];
+                if (eachInfo['from'] === CA.toLowerCase()) {
+                    address.push(eachInfo['to'])
+                }
             }
-        }
+            return address[address.length - 1]
+        } 
     );
+    
+    if (routerAddress) {
+        const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=0x4200000000000000000000000000000000000006&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24&topic0_2_opr=and&topic2=0x000000000000000000000000${routerAddress.slice(2,routerAddress.length)}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
 
-    return initLP
+        let initLP = await fetch(UrlInitLp).then(
+            response => response.json()
+        ).then(
+            async data => {
+                if (data['result'][0]) {
+                    return parseInt(data['result'][0]['data'], 16)/10**18
+                }
+            } 
+        );
+
+        if (initLP === undefined) {
+            const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=0x4200000000000000000000000000000000000006&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x0000000000000000000000006BDED42c6DA8FBf0d2bA55B2fa120C5e0c8D7891&topic0_2_opr=and&topic2=0x000000000000000000000000${routerAddress.slice(2,routerAddress.length)}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
+
+            initLP = await fetch(UrlInitLp).then(
+                response => response.json()
+            ).then(
+                async data => {
+                    if (data['result'][0]) {
+                        return parseInt(data['result'][0]['data'], 16)/10**18
+                    }
+                } 
+            );
+        }
+
+        return initLP
+    } else {
+        const urlGetLiquidity = `https://api.basescan.org/api?module=account&action=txlist&address=${deployer}&page=1&offset=50&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY3}`
+
+        const initLp = await fetch(urlGetLiquidity).then(
+            response => response.json()
+        ).then(response => {
+            let isLatest = false;
+            let initLp = [];
+            for (let i = 0; i < response['result'].length; i++) {
+                if (response['result'][i]['input']) {
+                    if (response['result'][i]['input'].slice(0,10) === '0xf305d719'
+                        && isLatest === false) {
+                        const createTxn = response['result'][i];
+                        const getCa = (keyName: keyof typeof createTxn) => {
+                            return createTxn[keyName]
+                        };
+                        isLatest = true;
+                        initLp.push(getCa('value')/10**18)
+                    }
+                } 
+            }
+            return initLp[0]
+        })
+
+        return initLp
+    }
 }
 
 async function getTopHolders(deployer: string, CA: string, n: number) {
@@ -163,12 +222,20 @@ async function getTopHolders(deployer: string, CA: string, n: number) {
 
         return [holdersBalance, clogPerc]
     } else {
-        let clog = await contract.methods.balanceOf(CA).call();
-        let clogPerc = (Number(clog) / Number(totalSupply) * 100).toFixed(2);
-        if (Number(clogPerc) > 100) {
-            clogPerc = 'Infinity'
+        try {
+            return await getTopHolders(deployer, CA, n)
+        } catch (error) {
+            console.log('Cannot retrive holder data')
+            console.log(error)
+        } finally {
+            let clog = await contract.methods.balanceOf(CA).call();
+            let clogPerc = (Number(clog) / Number(totalSupply) * 100).toFixed(2);
+            if (Number(clogPerc) > 100) {
+                clogPerc = 'Infinity'
+            }
+
+            return [{'Updating': -1}, clogPerc]
         }
-        return [{ 'undefined': 0 }, clogPerc]
     }
 }
 
@@ -184,21 +251,19 @@ export async function getBurnTx(txHash: Bytes) {
         const amountLpBurnHex = txReceipt['logs'][0]['data'];
         const amountLpBurnInt = parseInt(String(amountLpBurnHex), 16);
         const burnPercent = await getLpPercent(amountLpBurnInt, lpAddress, deployer)
+        console.log('Burn Perc: ', burnPercent)
         const CA_renou = await getCAbyDeployer(deployer);
-        const totalHolders = await getTotalHolders(CA_renou[0]);
-        const holders_clog = await getTopHolders(deployer, CA_renou[0], 10);
-        // const initLp = await getInitialLp(CA_renou[0]);
-        const holdersBalance = holders_clog[0]
-        const clog = Number(holders_clog[1]);
-
         console.log('CA: ', CA_renou[0])
-        console.log('Deployer: ', deployer)
-        console.log('Burn percent: ', burnPercent)
+        const totalHolders = await getTotalHolders(CA_renou[0]);
         console.log('Total Holders: ', totalHolders)
-        console.log('Renounced: ', CA_renou[1])
-        // console.log(initLp)
+        const holders_clog = await getTopHolders(deployer, CA_renou[0], 10);
+        console.log('Holders: ', holders_clog[0])
+        const initLp = await getInitialLp(CA_renou[0], deployer);
+        console.log('LP: ', initLp)
+        const holdersBalance = holders_clog[0]
+        const clog = holders_clog[1]
 
-        return [CA_renou[0], burnPercent, totalHolders, holdersBalance, clog, CA_renou[1]]
+        return [CA_renou[0], burnPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp]
     }
 }
 
@@ -221,23 +286,22 @@ export async function getLockInfoMoon(txHash: any) {
         let time = current.getHours() + ":00:00";
         let currentTime = Date.parse(date + 'T' + time);
 
-        let lockDays = (unlockTimestamp - Number(currentTime) / 1000) / (60 * 60 * 24);
+        let lockDays = ((unlockTimestamp - Number(currentTime) / 1000) / (60 * 60 * 24)).toFixed(2);
+        console.log('Lock days: ', lockDays)
         const lockPercent = await getLpPercent(lockAmount, lpAddress, deployer)
+        console.log('Lock Percent: ', lockPercent)
         const CA_renou = await getCAbyDeployer(deployer);
+        console.log('CA: ', CA_renou[0])
         const totalHolders = await getTotalHolders(CA_renou[0]);
-        const holders_clog = await getTopHolders(deployer, CA_renou[0], 10)
-        // const initLp = await getInitialLp(CA_renou[0]);
+        console.log('Total Holders: ', totalHolders)
+        const holders_clog = await getTopHolders(deployer, CA_renou[0], 10);
+        console.log('Holders: ', holders_clog[0])
+        const initLp = await getInitialLp(CA_renou[0], deployer);
+        console.log('LP: ', initLp)
         const holdersBalance = holders_clog[0]
         const clog = holders_clog[1]
 
-        console.log('CA: ', CA_renou[0])
-        console.log('Deployer: ', deployer)
-        console.log('Lock: ', `${lockPercent}% Liquidity locked for ${lockDays} days`)
-        console.log('Total Holders: ', totalHolders)
-        console.log('Renounced: ', CA_renou[1])
-        // console.log(holders_clog)
-
-        return [CA_renou[0], lockDays, lockPercent, totalHolders, holdersBalance, clog, CA_renou[1]]
+        return [CA_renou[0], lockDays, lockPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp]
     }
 }
 
