@@ -172,14 +172,13 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
 bot.command('start', async (ctx) => {
     const chatId = ctx.msg.chat.id;
     try {
-        await getLockInfo(true, chatId);  
-        await delay(500); 
-    } catch (error) {
-        console.log(error)
-    }
-    try {
-        await getBurnInfo(true, chatId);  
-        await delay(500); 
+        try {
+            await getLockInfo(true, chatId);
+        } catch (error) {
+            console.log(error)
+        }
+        await getBurnInfo(true, chatId); 
+        await delay(1000); 
     } catch (error) {
         console.log(error)
     }
