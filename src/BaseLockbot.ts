@@ -78,7 +78,7 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
                 }
             } 
         );
-        console.log('Info burn:', info)
+        //console.log('Info burn:', info)
         if (info){
             for (let i = 0; i < info.length; i++) {
                 let eachInfo = info[i];
@@ -134,7 +134,7 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
                 }
             }
         );
-        console.log('Info lock:', info)
+        //console.log('Info lock:', info)
         if (info){
             var holder_msg = 'Holders: ';
             for (let i = 0; i < info.length; i++) {
