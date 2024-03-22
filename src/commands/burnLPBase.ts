@@ -32,7 +32,7 @@ async function getCAbyDeployer(deployer: string) {
 
     const CA = await fetch(urlGetCA).then(
         response => response.json()
-    ).then(response => {
+    ).then(async response => {
         let isLatest = false;
         for (let i = 0; i < response['result'].length; i++) {
             if (response['result'][i]['input'].slice(0, 10) === '0x60806040'
@@ -45,6 +45,17 @@ async function getCAbyDeployer(deployer: string) {
                 };
                 isLatest = true;
                 return getCa('contractAddress')
+            } else if (response['result'][i]['input'].slice(0,10) === '0xf346c18d') {
+                const createTxn = response['result'][i];
+                const getCa = (keyName: keyof typeof createTxn) => {
+                    return createTxn[keyName]
+                };
+                const logs = await web3.eth.getTransactionReceipt(getCa('hash'))
+                const caHex = logs['logs'][0]['topics']
+                if (caHex) {
+                    const caDec = '0x' + `${caHex[2].slice(26, caHex[2].length)}`
+                    return caDec
+                }
             } else if (response['result'][i]['input'].slice(0, 10) === '0x715018a6') {
                 isRenounced = true;
             }
