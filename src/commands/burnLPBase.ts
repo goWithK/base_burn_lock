@@ -35,29 +35,33 @@ async function getCAbyDeployer(deployer: string) {
     ).then(async response => {
         let isLatest = false;
         for (let i = 0; i < response['result'].length; i++) {
-            if (response['result'][i]['input'].slice(0, 10) === '0x60806040'
-                || response['result'][i]['input'].slice(0, 10) === '0x61016060'
-                || response['result'][i]['input'].slice(0,10) === '0x60a06040'
-                && isLatest === false) {
-                const createTxn = response['result'][i];
-                const getCa = (keyName: keyof typeof createTxn) => {
-                    return createTxn[keyName]
-                };
-                isLatest = true;
-                return getCa('contractAddress')
-            } else if (response['result'][i]['input'].slice(0,10) === '0xf346c18d') {
-                const createTxn = response['result'][i];
-                const getCa = (keyName: keyof typeof createTxn) => {
-                    return createTxn[keyName]
-                };
-                const logs = await web3.eth.getTransactionReceipt(getCa('hash'))
-                const caHex = logs['logs'][0]['topics']
-                if (caHex) {
-                    const caDec = '0x' + `${caHex[2].slice(26, caHex[2].length)}`
-                    return caDec
+            if (response['result'][i]['input']) {
+                if (response['result'][i]['input'].slice(0, 10) === '0x60806040'
+                    || response['result'][i]['input'].slice(0, 10) === '0x61016060'
+                    || response['result'][i]['input'].slice(0, 10) === '0x60a06040'
+                    || response['result'][i]['input'].slice(0, 10) === '0x60c06040'
+                    || response['result'][i]['input'].slice(0, 10) === '0x6b204fce'
+                    && isLatest === false) {
+                    const createTxn = response['result'][i];
+                    const getCa = (keyName: keyof typeof createTxn) => {
+                        return createTxn[keyName]
+                    };
+                    isLatest = true;
+                    return getCa('contractAddress')
+                } else if (response['result'][i]['input'].slice(0, 10) === '0xf346c18d') {
+                    const createTxn = response['result'][i];
+                    const getCa = (keyName: keyof typeof createTxn) => {
+                        return createTxn[keyName]
+                    };
+                    const logs = await web3.eth.getTransactionReceipt(getCa('hash'))
+                    const caHex = logs['logs'][0]['topics']
+                    if (caHex) {
+                        const caDec = '0x' + `${caHex[2].slice(26, caHex[2].length)}`
+                        return caDec
+                    }
+                } else if (response['result'][i]['input'].slice(0, 10) === '0x715018a6') {
+                    isRenounced = true;
                 }
-            } else if (response['result'][i]['input'].slice(0, 10) === '0x715018a6') {
-                isRenounced = true;
             }
         }
     })
@@ -83,7 +87,7 @@ async function getTotalHolders(CA: string) {
     return totalHolders
 }
 
-async function getInitialLp(CA: string, deployer: string) {
+async function getInitialLp(CA: string, deployer: string, lpAddress: any) {
     const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
     const UrlGetRouterAddress = `https://api.basescan.org/api?module=account&action=tokentx&fromBlock=0&toBlock=${currentBlock}&
     contractAddress=${CA}&address=${CA}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
@@ -93,67 +97,114 @@ async function getInitialLp(CA: string, deployer: string) {
     ).then(
         async data => {
             var address = [];
-            for (let i=0; i < data['result'].length; i++) {
+            for (let i = 0; i < data['result'].length; i++) {
                 let eachInfo = data['result'][i];
-                if (eachInfo['from'] === CA.toLowerCase()) {
+                if (eachInfo['from'] === CA.toLowerCase() 
+                    && eachInfo['to'] !== '0x000000000000000000000000000000000000dead') {
                     address.push(eachInfo['to'])
                 }
             }
             return address[address.length - 1]
-        } 
+        }
     );
-    
+
     if (routerAddress) {
-        const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=0x4200000000000000000000000000000000000006&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24&topic0_2_opr=and&topic2=0x000000000000000000000000${routerAddress.slice(2,routerAddress.length)}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
+        //uniswap
+        const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=0x4200000000000000000000000000000000000006&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24&topic0_2_opr=and&topic2=0x000000000000000000000000${routerAddress.slice(2, routerAddress.length)}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
 
         let initLP = await fetch(UrlInitLp).then(
             response => response.json()
         ).then(
             async data => {
                 if (data['result'][0]) {
-                    return parseInt(data['result'][0]['data'], 16)/10**18
+                    return parseInt(data['result'][0]['data'], 16) / 10 ** 18
                 }
-            } 
+            }
         );
 
         if (initLP === undefined) {
-            const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=0x4200000000000000000000000000000000000006&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x0000000000000000000000006BDED42c6DA8FBf0d2bA55B2fa120C5e0c8D7891&topic0_2_opr=and&topic2=0x000000000000000000000000${routerAddress.slice(2,routerAddress.length)}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
+            //sushiswap
+            const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=0x4200000000000000000000000000000000000006&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x0000000000000000000000006BDED42c6DA8FBf0d2bA55B2fa120C5e0c8D7891&topic0_2_opr=and&topic2=0x000000000000000000000000${routerAddress.slice(2, routerAddress.length)}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
 
             initLP = await fetch(UrlInitLp).then(
                 response => response.json()
             ).then(
                 async data => {
                     if (data['result'][0]) {
-                        return parseInt(data['result'][0]['data'], 16)/10**18
+                        return parseInt(data['result'][0]['data'], 16) / 10 ** 18
                     }
-                } 
+                }
             );
+        }
+
+        if (initLP === undefined) {
+            const urlGetLiquidity = `https://api.basescan.org/api?module=account&action=txlist&address=${deployer}&page=1&offset=50&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY3}`
+
+            initLP = await fetch(urlGetLiquidity).then(
+                response => response.json()
+            ).then(response => {
+                let isLatest = false;
+                let initLpTemp = [];
+                for (let i = 0; i < response['result'].length; i++) {
+                    if (response['result'][i]['input']) {
+                        if (response['result'][i]['input'].slice(0, 10) === '0xf305d719'
+                            ||response['result'][i]['input'].slice(0, 10) === '0xe8e33700'
+                            && isLatest === false) {
+                            const createTxn = response['result'][i];
+                            const getCa = (keyName: keyof typeof createTxn) => {
+                                return createTxn[keyName]
+                            };
+                            isLatest = true;
+                            initLpTemp.push(Number(getCa('value')) / 10**18)
+                        }
+                    }
+                }
+
+                return initLpTemp[0]
+            })
         }
 
         return initLP
     } else {
         const urlGetLiquidity = `https://api.basescan.org/api?module=account&action=txlist&address=${deployer}&page=1&offset=50&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY3}`
 
-        const initLp = await fetch(urlGetLiquidity).then(
+        let initLp = await fetch(urlGetLiquidity).then(
             response => response.json()
         ).then(response => {
             let isLatest = false;
-            let initLp = [];
+            let initLpTemp = [];
             for (let i = 0; i < response['result'].length; i++) {
                 if (response['result'][i]['input']) {
-                    if (response['result'][i]['input'].slice(0,10) === '0xf305d719'
+                    if (response['result'][i]['input'].slice(0, 10) === '0xf305d719'
+                        || response['result'][i]['input'].slice(0, 10) === '0xe8e33700'
                         && isLatest === false) {
                         const createTxn = response['result'][i];
                         const getCa = (keyName: keyof typeof createTxn) => {
                             return createTxn[keyName]
                         };
                         isLatest = true;
-                        initLp.push(getCa('value')/10**18)
+                        initLpTemp.push(Number(getCa('value')) / 10**18)
                     }
-                } 
+                }
             }
-            return initLp[0]
+            return initLpTemp[0]
         })
+
+        if (initLp === 0) {
+            const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=0x4200000000000000000000000000000000000006&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x000000000000000000000000${deployer.slice(2, deployer.length)}&topic0_2_opr=and&topic2=0x000000000000000000000000${lpAddress.slice(2, lpAddress.length)}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
+
+            initLp = await fetch(UrlInitLp).then(
+                response => response.json()
+            ).then(
+                async data => {
+                    if (data['result'][0]) {
+                        return parseInt(data['result'][0]['data'], 16) / 10 ** 18
+                    } else {
+                        return 0.1
+                    }
+                }
+            );
+        }
 
         return initLp
     }
@@ -265,16 +316,20 @@ export async function getBurnTx(txHash: Bytes) {
         console.log('Burn Perc: ', burnPercent)
         const CA_renou = await getCAbyDeployer(deployer);
         console.log('CA: ', CA_renou[0])
-        const totalHolders = await getTotalHolders(CA_renou[0]);
-        console.log('Total Holders: ', totalHolders)
-        const holders_clog = await getTopHolders(deployer, CA_renou[0], 10);
-        console.log('Holders: ', holders_clog[0])
-        const initLp = await getInitialLp(CA_renou[0], deployer);
-        console.log('LP: ', initLp)
-        const holdersBalance = holders_clog[0]
-        const clog = holders_clog[1]
+        if (CA_renou[0]) {
+            const totalHolders = await getTotalHolders(CA_renou[0]);
+            console.log('Total Holders: ', totalHolders)
+            const holders_clog = await getTopHolders(deployer, CA_renou[0], 10);
+            console.log('Holders: ', holders_clog[0])
+            const initLp = await getInitialLp(CA_renou[0], deployer, lpAddress);
+            console.log('LP: ', initLp)
+            const holdersBalance = holders_clog[0]
+            const clog = holders_clog[1]
 
-        return [CA_renou[0], burnPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp]
+            return [CA_renou[0], burnPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp]
+        } else {
+            console.log(`${deployer} is not an owner!!!`)
+        }
     }
 }
 
@@ -303,16 +358,18 @@ export async function getLockInfoMoon(txHash: any) {
         console.log('Lock Percent: ', lockPercent)
         const CA_renou = await getCAbyDeployer(deployer);
         console.log('CA: ', CA_renou[0])
-        const totalHolders = await getTotalHolders(CA_renou[0]);
-        console.log('Total Holders: ', totalHolders)
-        const holders_clog = await getTopHolders(deployer, CA_renou[0], 10);
-        console.log('Holders: ', holders_clog[0])
-        const initLp = await getInitialLp(CA_renou[0], deployer);
-        console.log('LP: ', initLp)
-        const holdersBalance = holders_clog[0]
-        const clog = holders_clog[1]
+        if (CA_renou[0]) {
+            const totalHolders = await getTotalHolders(CA_renou[0]);
+            console.log('Total Holders: ', totalHolders)
+            const holders_clog = await getTopHolders(deployer, CA_renou[0], 10);
+            console.log('Holders: ', holders_clog[0])
+            const initLp = await getInitialLp(CA_renou[0], deployer, lpAddress);
+            console.log('LP: ', initLp)
+            const holdersBalance = holders_clog[0]
+            const clog = holders_clog[1]
 
-        return [CA_renou[0], lockDays, lockPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp]
+            return [CA_renou[0], lockDays, lockPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp]
+        }
     }
 }
 

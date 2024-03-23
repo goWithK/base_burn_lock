@@ -65,6 +65,7 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
             response => response.json()
         ).then(
             async data => {
+                await delay(500);
                 if (data['result'] !== 'Error!' && data['result'].length > 0) {
                     // console.log('Burn: ', data['result'])
                     let output = [];
@@ -107,7 +108,7 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
                 }
             }
         }
-        await delay(4500);
+        await delay(4000);
         await getBurnInfo(trueOrFalse, chatId);
     }
 }
@@ -121,6 +122,7 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
             response => response.json()
         ).then(
             async data => {
+                await delay(500);
                 let output = [];
                 if (data['result'] !== 'Error!' && data['result'].length > 0) {
                     // console.log('Lock: ', data['result'])
@@ -163,7 +165,7 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
                 }
             }
         }
-        await delay(4500);
+        await delay(4000);
         await getLockInfo(trueOrFalse, chatId);
     }
 }
@@ -177,7 +179,11 @@ bot.command('start', async (ctx) => {
         } catch (error) {
             console.log(error)
         }
-        await getBurnInfo(true, chatId); 
+        try {
+            await getBurnInfo(true, chatId);
+        } catch (error) {
+            console.log(error)
+        } 
         await delay(1000); 
     } catch (error) {
         console.log(error)
