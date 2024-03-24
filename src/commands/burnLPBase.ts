@@ -314,7 +314,8 @@ async function getCAbyTxLock(txHash: string, lpAddress: string, deployer: string
             for (let i=0; i < 4; i++) {
                 if (String(topics[i]) !== '0x531cba00a411ade37b4ca8175d92c94149f19536bd8e5a83d581aa7f040d192e'
                 && String(topics[i]) !== '0x0000000000000000000000004200000000000000000000000000000000000006'
-                && String(topics[i]) !== `0x000000000000000000000000${lpAddress.slice(2, lpAddress.length).toLowerCase()}`) {
+                && String(topics[i]) !== `0x000000000000000000000000${lpAddress.slice(2, lpAddress.length).toLowerCase()}`
+                && String(topics[i]) !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
                     needTopic.push(topics[i])
                 }
             }
@@ -338,7 +339,11 @@ async function getCAbyTxLock(txHash: string, lpAddress: string, deployer: string
         }
     })
 
-    return ['0x' + `${needTopic[0].slice(26, needTopic[0].length)}`, isRenounced]
+    if (needTopic.length !== 0) {
+        return ['0x' + `${needTopic[0].slice(26, needTopic[0].length)}`, isRenounced]
+    } else {
+        return [undefined, isRenounced]
+    }
 }
 
 export async function getBurnTx(txHash: Bytes) {
