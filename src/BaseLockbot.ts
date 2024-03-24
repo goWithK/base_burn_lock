@@ -65,7 +65,7 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
             response => response.json()
         ).then(
             async data => {
-                await delay(500);
+                await delay(1000);
                 if (data['result'] !== 'Error!' && data['result'].length > 0) {
                     // console.log('Burn: ', data['result'])
                     let output = [];
@@ -108,7 +108,7 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
                 }
             }
         }
-        await delay(4000);
+        await delay(3500);
         await getBurnInfo(trueOrFalse, chatId);
     }
 }
@@ -122,7 +122,7 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
             response => response.json()
         ).then(
             async data => {
-                await delay(500);
+                await delay(1000);
                 let output = [];
                 if (data['result'] !== 'Error!' && data['result'].length > 0) {
                     // console.log('Lock: ', data['result'])
@@ -144,7 +144,7 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
                 if (eachInfo){
                     let ca_msg = `<a href="https://basescan.org/address/${eachInfo[0]}">CA:</a> <b>${eachInfo[0]}</b>\n \n`;
                     let lock_msg = `<b>Liquidity: <strong>${eachInfo[2]} % of Liquidity Locked for ${eachInfo[1]} days</strong>.</b>\n`;
-                    let total_msg = `Total holders: ${eachInfo[2]} \n`;
+                    let total_msg = `Total holders: ${eachInfo[3]} \n`;
                     let ca_balance_msg = `Contract Balance: ${eachInfo[5]}% \n`;
                     let renounced_msg = `Renounced: Not yet\n`
                     if (eachInfo[6]) {renounced_msg = `Renounced: Yes\n`}
@@ -165,14 +165,14 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
                 }
             }
         }
-        await delay(4000);
+        await delay(3500);
         await getLockInfo(trueOrFalse, chatId);
     }
 }
 
 //START COMMAND
 bot.command('start', async (ctx) => {
-    const chatId = ctx.msg.chat.id;
+    const chatId = -1002085734483;
     try {
         try {
             await getLockInfo(true, chatId);

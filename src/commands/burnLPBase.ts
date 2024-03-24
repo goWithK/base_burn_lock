@@ -41,6 +41,7 @@ async function getCAbyDeployer(deployer: string) {
                     || response['result'][i]['input'].slice(0, 10) === '0x60a06040'
                     || response['result'][i]['input'].slice(0, 10) === '0x60c06040'
                     || response['result'][i]['input'].slice(0, 10) === '0x6b204fce'
+                    || response['result'][i]['input'].slice(0, 10) === '0x6b033b2e'
                     && isLatest === false) {
                     const createTxn = response['result'][i];
                     const getCa = (keyName: keyof typeof createTxn) => {
@@ -69,7 +70,7 @@ async function getCAbyDeployer(deployer: string) {
     return [CA, isRenounced]
 }
 
-async function getTotalHolders(CA: string) {
+async function getTotalHolders(CA: any) {
     const requestHeaders: HeadersInit = new Headers();
     requestHeaders.set('accept', 'application/json');
     requestHeaders.set('x-api-key', `${process.env.CHAINBASE_API_KEY}`);
@@ -87,7 +88,7 @@ async function getTotalHolders(CA: string) {
     return totalHolders
 }
 
-async function getInitialLp(CA: string, deployer: string, lpAddress: any) {
+async function getInitialLp(CA: any, deployer: string, lpAddress: any) {
     const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
     const UrlGetRouterAddress = `https://api.basescan.org/api?module=account&action=tokentx&fromBlock=0&toBlock=${currentBlock}&
     contractAddress=${CA}&address=${CA}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
@@ -149,6 +150,8 @@ async function getInitialLp(CA: string, deployer: string, lpAddress: any) {
                     if (response['result'][i]['input']) {
                         if (response['result'][i]['input'].slice(0, 10) === '0xf305d719'
                             ||response['result'][i]['input'].slice(0, 10) === '0xe8e33700'
+                            || response['result'][i]['input'].slice(0, 10) === '0x51c6590a'
+                            && response['result'][i]['to'] === CA
                             && isLatest === false) {
                             const createTxn = response['result'][i];
                             const getCa = (keyName: keyof typeof createTxn) => {
@@ -177,6 +180,7 @@ async function getInitialLp(CA: string, deployer: string, lpAddress: any) {
                 if (response['result'][i]['input']) {
                     if (response['result'][i]['input'].slice(0, 10) === '0xf305d719'
                         || response['result'][i]['input'].slice(0, 10) === '0xe8e33700'
+                        || response['result'][i]['input'].slice(0, 10) === '0x51c6590a'
                         && isLatest === false) {
                         const createTxn = response['result'][i];
                         const getCa = (keyName: keyof typeof createTxn) => {
@@ -190,7 +194,7 @@ async function getInitialLp(CA: string, deployer: string, lpAddress: any) {
             return initLpTemp[0]
         })
 
-        if (initLp === 0) {
+        if (initLp === 0 || initLp === undefined) {
             const UrlInitLp = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=0&toBlock=${currentBlock}&address=0x4200000000000000000000000000000000000006&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_1_opr=and&topic1=0x000000000000000000000000${deployer.slice(2, deployer.length)}&topic0_2_opr=and&topic2=0x000000000000000000000000${lpAddress.slice(2, lpAddress.length)}&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY3}`
 
             initLp = await fetch(UrlInitLp).then(
@@ -210,7 +214,7 @@ async function getInitialLp(CA: string, deployer: string, lpAddress: any) {
     }
 }
 
-async function getTopHolders(deployer: string, CA: string, n: number) {
+async function getTopHolders(deployer: string, CA: any, n: number) {
     const requestHeaders: HeadersInit = new Headers();
     requestHeaders.set('accept', 'application/json');
     requestHeaders.set('x-api-key', `${process.env.CHAINBASE_API_KEY}`);
@@ -270,7 +274,7 @@ async function getTopHolders(deployer: string, CA: string, n: number) {
         for (let i = 0; i < holderLimit; i++) {
             if (holderAddress[i]['wallet_address'] === deployer) {
                 let balance = holderAddress[i]['original_amount'];
-                holdersBalance['Creator'] = (Number(balance) / Number(totalSupply) * 100).toFixed(2);
+                holdersBalance[holderAddress[i]['wallet_address']] = `Creator - ${(Number(balance) / Number(totalSupply) * 100).toFixed(2)}`
             } else if (holderAddress[i]['wallet_address'] !== '0x000000000000000000000000000000000000dead') {
                 let balance = holderAddress[i]['original_amount'];
                 holdersBalance[holderAddress[i]['wallet_address']] = (Number(balance) / Number(totalSupply) * 100).toFixed(2);
@@ -299,6 +303,42 @@ async function getTopHolders(deployer: string, CA: string, n: number) {
             return [{'Updating': -1}, clogPerc]
         }
     }
+}
+
+async function getCAbyTxLock(txHash: string, lpAddress: string, deployer: string) {
+    const txReceipt = await web3.eth.getTransactionReceipt(txHash);
+    let needTopic = [];
+    if (txReceipt['logs'][txReceipt['logs'].length-1]){
+        let topics = txReceipt['logs'][txReceipt['logs'].length-1]['topics'];
+        if (topics){
+            for (let i=0; i < 4; i++) {
+                if (String(topics[i]) !== '0x531cba00a411ade37b4ca8175d92c94149f19536bd8e5a83d581aa7f040d192e'
+                && String(topics[i]) !== '0x0000000000000000000000004200000000000000000000000000000000000006'
+                && String(topics[i]) !== `0x000000000000000000000000${lpAddress.slice(2, lpAddress.length).toLowerCase()}`) {
+                    needTopic.push(topics[i])
+                }
+            }
+        }
+    }
+
+    const currentBlock = web3.eth.getBlockNumber().then(value => { return Number(value) });
+    const urlGetRenoun = `https://api.basescan.org/api?module=account&action=txlist&address=${deployer}&page=1&offset=50&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY3}`
+    let isRenounced = false;
+
+    await fetch(urlGetRenoun).then(
+        response => response.json()
+    ).then(async response => {
+        let isLatest = false;
+        for (let i = 0; i < response['result'].length; i++) {
+            if (response['result'][i]['input']) {
+                if (response['result'][i]['input'].slice(0, 10) === '0x715018a6') {
+                    isRenounced = true;
+                }
+            }
+        }
+    })
+
+    return ['0x' + `${needTopic[0].slice(26, needTopic[0].length)}`, isRenounced]
 }
 
 export async function getBurnTx(txHash: Bytes) {
@@ -356,7 +396,10 @@ export async function getLockInfoMoon(txHash: any) {
         console.log('Lock days: ', lockDays)
         const lockPercent = await getLpPercent(lockAmount, lpAddress, deployer)
         console.log('Lock Percent: ', lockPercent)
-        const CA_renou = await getCAbyDeployer(deployer);
+        let CA_renou = await getCAbyTxLock(txHash, lpAddress, deployer)
+        if (CA_renou[0] === undefined){
+            CA_renou = await getCAbyDeployer(deployer);
+        }
         console.log('CA: ', CA_renou[0])
         if (CA_renou[0]) {
             const totalHolders = await getTotalHolders(CA_renou[0]);
