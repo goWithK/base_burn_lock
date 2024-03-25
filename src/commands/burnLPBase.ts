@@ -394,7 +394,7 @@ export async function getLockInfoMoon(txHash: any) {
         const unlockTimestamp = Number(decodedInput['args'][2]);
         let current = new Date();
         let date = current.getFullYear() + '-' + ('0' + (current.getMonth() + 1)).slice(-2) + '-' + ('0' + current.getDate()).slice(-2);
-        let time = current.getHours() + ":00:00";
+        let time = ('0' + current.getHours()).slice(-2) + ":00:00";
         let currentTime = Date.parse(date + 'T' + time);
 
         let lockDays = ((unlockTimestamp - Number(currentTime) / 1000) / (60 * 60 * 24)).toFixed(2);
