@@ -7,7 +7,7 @@ const web3 = new Web3(new Web3.providers.HttpProvider(`${process.env.ALCHEMY_END
 // const txHash = '0xb7b960e3269081870e0cc4984b362e8354e2fdeababb275a26a277b819433657';
 // const txHash = '0x215a971ae7d6d18de7dcb13f2ff12d7e96cd763de1de1c00d217c8d77f7db349';
 // const txHash = '0x795193da34128a9b81ab7c1cf3ee52f6f07e4341dc5cfc609ea7c6199ea6a312'; //Burn
-// added LP, token name, token symbol, display holders, sticker, buy tax, sell tax, MC
+// sticker, buy tax, sell tax, MC
 
 
 async function getLpPercent(amountLpInt: number, lpAddress: any, deployer: string) {
@@ -42,6 +42,7 @@ async function getCAbyDeployer(deployer: string) {
                     || response['result'][i]['input'].slice(0, 10) === '0x60c06040'
                     || response['result'][i]['input'].slice(0, 10) === '0x6b204fce'
                     || response['result'][i]['input'].slice(0, 10) === '0x6b033b2e'
+                    || response['result'][i]['input'].slice(0, 10) === '0x6bdef376'
                     && isLatest === false) {
                     const createTxn = response['result'][i];
                     const getCa = (keyName: keyof typeof createTxn) => {
@@ -160,6 +161,15 @@ async function getInitialLp(CA: any, deployer: string, lpAddress: any) {
                             isLatest = true;
                             initLpTemp.push(Number(getCa('value')) / 10**18)
                         }
+                    }
+                    if (response['result'][i]['from'] === deployer && response['result'][i]['to'] === CA) {
+                        const createTxn = response['result'][i];
+                        const getCa = (keyName: keyof typeof createTxn) => {
+                            return createTxn[keyName]
+                        };
+                        if (Number(getCa('value')) / 10 ** 18 > 0) {
+                            initLpTemp.push(Number(getCa('value')) / 10 ** 18)
+                        } 
                     }
                 }
 
@@ -346,11 +356,63 @@ async function getCAbyTxLock(txHash: string, lpAddress: string, deployer: string
     }
 }
 
+async function getTokenInfo(CA: any) {
+    const abi = [
+        {
+            "inputs": [],
+            "name": "symbol",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "decimals",
+            "outputs": [
+                {
+                    "internalType": "uint8",
+                    "name": "",
+                    "type": "uint8"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "name",
+            "outputs": [
+                {
+                    "internalType": "string",
+                    "name": "",
+                    "type": "string"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ] as const;
+    let contract = new web3.eth.Contract(abi, CA);
+    const tokenName = await contract.methods.name().call();
+    const symbol = await contract.methods.symbol().call();
+    const decimals = await contract.methods.decimals().call();
+
+    return [tokenName, symbol, Number(decimals)]
+}
+
 export async function getBurnTx(txHash: Bytes) {
     const txData = await web3.eth.getTransaction(txHash);
     const txInput = txData['input'].toString();
 
     if (txInput.slice(0, 10) === '0xa9059cbb') {
+        let current = new Date();
+        console.log(current.toLocaleTimeString())
         console.log('Burn tx', txHash)
         const deployer = txData['from'].toString();
         const txReceipt = await web3.eth.getTransactionReceipt(txHash);
@@ -361,7 +423,10 @@ export async function getBurnTx(txHash: Bytes) {
         console.log('Burn Perc: ', burnPercent)
         const CA_renou = await getCAbyDeployer(deployer);
         console.log('CA: ', CA_renou[0])
+
         if (CA_renou[0]) {
+            const tokenInfo = await getTokenInfo(CA_renou[0])
+            console.log(tokenInfo)
             const totalHolders = await getTotalHolders(CA_renou[0]);
             console.log('Total Holders: ', totalHolders)
             const holders_clog = await getTopHolders(deployer, CA_renou[0], 10);
@@ -370,8 +435,11 @@ export async function getBurnTx(txHash: Bytes) {
             console.log('LP: ', initLp)
             const holdersBalance = holders_clog[0]
             const clog = holders_clog[1]
+            const tokenName = tokenInfo[0];
+            const tokenSym = tokenInfo[1];
+            const tokenDec = tokenInfo[2];
 
-            return [CA_renou[0], burnPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp]
+            return [CA_renou[0], burnPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp, tokenName, tokenSym, tokenDec]
         } else {
             console.log(`${deployer} is not an owner!!!`)
         }
@@ -379,6 +447,10 @@ export async function getBurnTx(txHash: Bytes) {
 }
 
 export async function getLockInfoMoon(txHash: any) {
+    let current = new Date();
+    let date = current.getFullYear() + '-' + ('0' + (current.getMonth() + 1)).slice(-2) + '-' + ('0' + current.getDate()).slice(-2);
+    let time = ('0' + current.getHours()).slice(-2) + ":00:00";
+    let currentTime = Date.parse(date + 'T' + time);
     console.log('Lock tx: ', txHash)
     const txData = await web3.eth.getTransaction(txHash);
     const deployer = txData['from'].toString();
@@ -392,10 +464,6 @@ export async function getLockInfoMoon(txHash: any) {
         const lpAddress = decodedInput['args'][0];
         const lockAmount = decodedInput['args'][1];
         const unlockTimestamp = Number(decodedInput['args'][2]);
-        let current = new Date();
-        let date = current.getFullYear() + '-' + ('0' + (current.getMonth() + 1)).slice(-2) + '-' + ('0' + current.getDate()).slice(-2);
-        let time = ('0' + current.getHours()).slice(-2) + ":00:00";
-        let currentTime = Date.parse(date + 'T' + time);
 
         let lockDays = ((unlockTimestamp - Number(currentTime) / 1000) / (60 * 60 * 24)).toFixed(2);
         console.log('Lock days: ', lockDays)
@@ -407,6 +475,8 @@ export async function getLockInfoMoon(txHash: any) {
         }
         console.log('CA: ', CA_renou[0])
         if (CA_renou[0]) {
+            const tokenInfo = await getTokenInfo(CA_renou[0])
+            console.log(tokenInfo)
             const totalHolders = await getTotalHolders(CA_renou[0]);
             console.log('Total Holders: ', totalHolders)
             const holders_clog = await getTopHolders(deployer, CA_renou[0], 10);
@@ -415,8 +485,11 @@ export async function getLockInfoMoon(txHash: any) {
             console.log('LP: ', initLp)
             const holdersBalance = holders_clog[0]
             const clog = holders_clog[1]
+            const tokenName = tokenInfo[0];
+            const tokenSym = tokenInfo[1];
+            const tokenDec = tokenInfo[2];
 
-            return [CA_renou[0], lockDays, lockPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp]
+            return [CA_renou[0], lockDays, lockPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp, tokenName, tokenSym, tokenDec]
         }
     }
 }

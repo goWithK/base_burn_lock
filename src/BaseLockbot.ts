@@ -15,7 +15,7 @@ const BOT_TOKEN = process.env.BURN_ETH_BOT || '';
 const web3 = new Web3(new Web3.providers.HttpProvider(`${process.env.ALCHEMY_ENDPOINT_BASE}`))
 
 //BOT CONFIG
-const bot = new Bot<ParseModeFlavor<BotContext>>(BOT_TOKEN);
+const bot = new Bot<BotContext>(BOT_TOKEN);
 const throttler = apiThrottler({
     global: globalConfig,
     group: groupConfig,
@@ -23,8 +23,8 @@ const throttler = apiThrottler({
 });
 
 bot.api.setMyCommands(COMMANDS);
-bot.use(hydrateReply);
-// bot.use(emojiParser);
+// bot.use(hydrateReply);
+bot.use(emojiParser());
 bot.api.config.use(throttler);
 //bot.api.config.use(parseMode('')); // Sets default parse_mode for ctx.reply
 
@@ -57,7 +57,7 @@ function delay(time: number) {
     return new Promise(resolve => setTimeout(resolve, time));
 }
 
-async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
+async function getBurnInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
     if(trueOrFalse) {
         const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
         const UrlTransferBurn = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${Number(currentBlock)-3}&toBlock=${currentBlock}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_2_opr=and&topic2=0x000000000000000000000000000000000000000000000000000000000000dead&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY4}`
@@ -85,13 +85,14 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
                 let eachInfo = info[i];
                 let holder_msg = 'Holders: ';
                 if (eachInfo){
+                    let title = ctx.emoji`${"fire"} <strong>LP BURNT</strong>  | ${eachInfo[7]} | ${eachInfo[8]} \n \n`
                     let ca_msg = `<a href="https://basescan.org/address/${eachInfo[0]}">CA:</a> <b>${eachInfo[0]}</b>\n \n`;
                     let burn_msg = `Liquidity: <b> <strong>${eachInfo[1]}% of Liquidity Burnt</strong>.</b>\n`
-                    let total_msg = `Total holders: ${eachInfo[2]} \n`;
-                    let ca_balance_msg = `Contract Balance: ${eachInfo[4]} \n`;
-                    let renounced_msg = `Renounced: Not yet \n`
-                    if (eachInfo[5]) {renounced_msg = `Renounced: Yes \n`}
-                    let initLp_msg = `Init LP: ${eachInfo[6]} ETH\n`;
+                    let total_msg = ctx.emoji`${"busts_in_silhouette"} Total holders: ${eachInfo[2]} \n`;
+                    let ca_balance_msg = `Clog: ${eachInfo[4]} \n`;
+                    let renounced_msg = ctx.emoji`Renounced: ${"cross_mark"} \n`
+                    if (eachInfo[5]) {renounced_msg = ctx.emoji`Renounced: ${"check_mark_button"} \n`}
+                    let initLp_msg = ctx.emoji`${"money_with_wings"} Init LP: ${eachInfo[6]} ETH\n`;
                     let holderAddress = Object.keys(eachInfo[3]);
                     let list_msg = [];
                     let holderLimit = 5;
@@ -99,7 +100,7 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
                     for (let i=0; i < holderLimit; i++) {
                         list_msg.push(`<a href="https://basescan.org/address/${holderAddress[i]}">${eachInfo[3][holderAddress[i]]}</a>`)
                     }
-                    let tg_msg = ca_msg + burn_msg + total_msg + ca_balance_msg + renounced_msg + initLp_msg + holder_msg + list_msg.join(' | ');
+                    let tg_msg = title + ca_msg + burn_msg + total_msg + ca_balance_msg + renounced_msg + initLp_msg + holder_msg + list_msg.join(' | ');
                     await bot.api.sendMessage(
                         chatId,
                         tg_msg,
@@ -109,11 +110,11 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any) {
             }
         }
         await delay(3500);
-        await getBurnInfo(trueOrFalse, chatId);
+        await getBurnInfo(trueOrFalse, chatId, ctx);
     }
 }
 
-async function getLockInfo(trueOrFalse: boolean, chatId: any) {
+async function getLockInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
     if(trueOrFalse) {
         const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
         const UrlLockTokenMoon = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${Number(currentBlock)-3}&toBlock=${currentBlock}&address=0x77110f67C0EF3c98c43570BADe06046eF6549876&topic0=0x531cba00a411ade37b4ca8175d92c94149f19536bd8e5a83d581aa7f040d192e&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY}`
@@ -142,13 +143,14 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
             for (let i = 0; i < info.length; i++) {
                 let eachInfo = info[i];
                 if (eachInfo){
+                    let title = ctx.emoji`${"locked"} <strong>LP LOCK</strong> | ${eachInfo[8]} | ${eachInfo[9]} \n\n`
                     let ca_msg = `<a href="https://basescan.org/address/${eachInfo[0]}">CA:</a> <b>${eachInfo[0]}</b>\n \n`;
-                    let lock_msg = `<b>Liquidity: <strong>${eachInfo[2]} % of Liquidity Locked for ${eachInfo[1]} days</strong>.</b>\n`;
-                    let total_msg = `Total holders: ${eachInfo[3]} \n`;
+                    let lock_msg = ctx.emoji`<b>${'locked'} Liquidity: <strong>${eachInfo[2]} % of Liquidity Locked for ${eachInfo[1]} days</strong>.</b>\n`;
+                    let total_msg = ctx.emoji`${"busts_in_silhouette"} Total holders: ${eachInfo[3]} \n`;
                     let ca_balance_msg = `Contract Balance: ${eachInfo[5]}% \n`;
-                    let renounced_msg = `Renounced: Not yet\n`
-                    if (eachInfo[6]) {renounced_msg = `Renounced: Yes\n`}
-                    let initLp_msg = `Init LP: ${eachInfo[7]} ETH \n`;
+                    let renounced_msg = ctx.emoji`Renounced: ${"cross_mark"} \n`
+                    if (eachInfo[5]) {renounced_msg = ctx.emoji`Renounced: ${"check_mark_button"} \n`}
+                    let initLp_msg = ctx.emoji`${"money_with_wings"} Init LP: ${eachInfo[7]} ETH \n`;
                     let holderAddress = Object.keys(eachInfo[4]);
                     let list_msg = [];
                     let holderLimit = 5;
@@ -156,7 +158,7 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
                     for (let i=0; i < holderLimit; i++) {
                         list_msg.push(`<a href="https://basescan.org/address/${holderAddress[i]}">${eachInfo[4][holderAddress[i]]}%</a>`)
                     }
-                    let tg_msg = ca_msg + lock_msg + total_msg + ca_balance_msg + renounced_msg + initLp_msg + holder_msg + list_msg.join(' | ');
+                    let tg_msg = title + ca_msg + lock_msg + total_msg + ca_balance_msg + renounced_msg + initLp_msg + holder_msg + list_msg.join(' | ');
                     await bot.api.sendMessage(
                         chatId,
                         tg_msg,
@@ -166,7 +168,7 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any) {
             }
         }
         await delay(3500);
-        await getLockInfo(trueOrFalse, chatId);
+        await getLockInfo(trueOrFalse, chatId, ctx);
     }
 }
 
@@ -175,12 +177,12 @@ bot.command('start', async (ctx) => {
     const chatId = -1002085734483;
     try {
         try {
-            await getLockInfo(true, chatId);
+            await getLockInfo(true, chatId, ctx);
         } catch (error) {
             console.log(error)
         }
         try {
-            await getBurnInfo(true, chatId);
+            await getBurnInfo(true, chatId, ctx);
         } catch (error) {
             console.log(error)
         } 
