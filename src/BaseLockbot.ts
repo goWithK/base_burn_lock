@@ -65,7 +65,8 @@ const formatter = new Intl.NumberFormat('en-US', {
 async function getBurnInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
     if(trueOrFalse) {
         const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-        const UrlTransferBurn = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${Number(currentBlock)-3}&toBlock=${currentBlock}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_2_opr=and&topic2=0x000000000000000000000000000000000000000000000000000000000000dead&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY4}`
+        const startblock = Number(currentBlock)-3;
+        const UrlTransferBurn = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startblock}&toBlock=${currentBlock}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_2_opr=and&topic2=0x000000000000000000000000000000000000000000000000000000000000dead&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY4}`
         var responseClone: any;
         let info = await fetch(UrlTransferBurn)
         .then(function (response) {
@@ -130,7 +131,8 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
 async function getLockInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
     if(trueOrFalse) {
         const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-        const UrlLockTokenMoon = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${Number(currentBlock)-3}&toBlock=${currentBlock}&address=0x77110f67C0EF3c98c43570BADe06046eF6549876&topic0=0x531cba00a411ade37b4ca8175d92c94149f19536bd8e5a83d581aa7f040d192e&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY}`
+        const startblock = Number(currentBlock)-3;
+        const UrlLockTokenMoon = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startblock}&toBlock=${currentBlock}&address=0x77110f67C0EF3c98c43570BADe06046eF6549876&topic0=0x531cba00a411ade37b4ca8175d92c94149f19536bd8e5a83d581aa7f040d192e&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY}`
 
         var responseClone1: any;
         let info1 = await fetch(UrlLockTokenMoon)
