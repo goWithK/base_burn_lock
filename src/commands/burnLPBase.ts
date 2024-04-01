@@ -4,10 +4,7 @@ import OM_ABI from '../JSON/Only_moons_ABI.json';
 import * as dotenv from 'dotenv';
 dotenv.config();
 const web3 = new Web3(new Web3.providers.HttpProvider(`${process.env.ALCHEMY_ENDPOINT_BASE}`))
-// const txHash = '0xb7b960e3269081870e0cc4984b362e8354e2fdeababb275a26a277b819433657';
-// const txHash = '0x215a971ae7d6d18de7dcb13f2ff12d7e96cd763de1de1c00d217c8d77f7db349';
-// const txHash = '0x795193da34128a9b81ab7c1cf3ee52f6f07e4341dc5cfc609ea7c6199ea6a312'; //Burn
-// sticker, buy tax, sell tax, MC
+// buy tax, sell tax
 
 
 async function getLpPercent(amountLpInt: number, lpAddress: any, deployer: string) {
@@ -23,6 +20,106 @@ async function getLpPercent(amountLpInt: number, lpAddress: any, deployer: strin
         }
     )
     return lpPercent
+}
+
+async function getMCUniswap(CA: any, burnAmount: any) {
+    const requestHeaders: HeadersInit = new Headers();
+    requestHeaders.set('accept', 'application/json');
+    requestHeaders.set('x-api-key', `${process.env.CHAINBASE_API_KEY}`);
+    const chainId = await web3.eth.getChainId().then(value => { return Number(value) });
+
+    const MC = await fetch(`https://api.chainbase.online/v1/token/price?chain_id=${chainId}&contract_address=0x4200000000000000000000000000000000000006`, {
+        method: 'GET',
+        headers: requestHeaders
+    }).then(response => response.json())
+        .then(async data => {
+            const abiGetPair = [
+                {
+                    "constant": true,
+                    "inputs": [
+                        {
+                            "internalType": "address",
+                            "name": "",
+                            "type": "address"
+                        },
+                        {
+                            "internalType": "address",
+                            "name": "",
+                            "type": "address"
+                        }
+                    ],
+                    "name": "getPair",
+                    "outputs": [
+                        {
+                            "internalType": "address",
+                            "name": "",
+                            "type": "address"
+                        }
+                    ],
+                    "payable": false,
+                    "stateMutability": "view",
+                    "type": "function"
+                }
+            ] as const;
+            let contract1 = new web3.eth.Contract(abiGetPair, '0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6');
+            let pairAddress = await contract1.methods.getPair(CA, '0x4200000000000000000000000000000000000006').call();
+
+            const abiGetReserve = [
+                {
+                    "constant": true,
+                    "inputs": [],
+                    "name": "getReserves",
+                    "outputs": [
+                        {
+                            "internalType": "uint112",
+                            "name": "_reserve0",
+                            "type": "uint112"
+                        },
+                        {
+                            "internalType": "uint112",
+                            "name": "_reserve1",
+                            "type": "uint112"
+                        },
+                        {
+                            "internalType": "uint32",
+                            "name": "_blockTimestampLast",
+                            "type": "uint32"
+                        }
+                    ],
+                    "payable": false,
+                    "stateMutability": "view",
+                    "type": "function"
+                },
+            ] as const;
+            let contract2 = new web3.eth.Contract(abiGetReserve, pairAddress);
+            let reserves = await contract2.methods.getReserves().call();
+            let reserve0 = reserves['0'];
+            let reserve1 = reserves['1'];
+
+            const abiTotalSupply = [
+                {
+                    "inputs": [],
+                    "name": "totalSupply",
+                    "outputs": [
+                        {
+                            "internalType": "uint256",
+                            "name": "",
+                            "type": "uint256"
+                        }
+                    ],
+                    "stateMutability": "view",
+                    "type": "function"
+                }
+            ] as const;
+            let contract3 = new web3.eth.Contract(abiTotalSupply, CA);
+            let totalSupply = await contract3.methods.totalSupply().call();
+
+            //MC: reserve1/reserve0*(totalSupply - burnAmount)*priceWETH
+            return (Number(reserve1)/Number(reserve0)*(Number(totalSupply) - Number(burnAmount))/10**18*data['data']['price']).toFixed(0)
+        })
+        .catch(error => console.error(error));
+
+    return MC
 }
 
 async function getCAbyDeployer(deployer: string) {
@@ -433,13 +530,14 @@ export async function getBurnTx(txHash: Bytes) {
             console.log('Holders: ', holders_clog[0])
             const initLp = await getInitialLp(CA_renou[0], deployer, lpAddress);
             console.log('LP: ', initLp)
+            const MC = await getMCUniswap(CA_renou[0], amountLpBurnInt)
             const holdersBalance = holders_clog[0]
             const clog = holders_clog[1]
             const tokenName = tokenInfo[0];
             const tokenSym = tokenInfo[1];
             const tokenDec = tokenInfo[2];
 
-            return [CA_renou[0], burnPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp, tokenName, tokenSym, tokenDec]
+            return [CA_renou[0], burnPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp, tokenName, tokenSym, tokenDec, MC]
         } else {
             console.log(`${deployer} is not an owner!!!`)
         }
@@ -483,13 +581,123 @@ export async function getLockInfoMoon(txHash: any) {
             console.log('Holders: ', holders_clog[0])
             const initLp = await getInitialLp(CA_renou[0], deployer, lpAddress);
             console.log('LP: ', initLp)
+            const MC = await getMCUniswap(CA_renou[0], 0)
             const holdersBalance = holders_clog[0]
             const clog = holders_clog[1]
             const tokenName = tokenInfo[0];
             const tokenSym = tokenInfo[1];
             const tokenDec = tokenInfo[2];
 
-            return [CA_renou[0], lockDays, lockPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp, tokenName, tokenSym, tokenDec]
+            return [CA_renou[0], lockDays, lockPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp, tokenName, tokenSym, tokenDec, MC]
+        }
+    }
+}
+
+export async function getLockInfoUNCX(txHash: any) {
+    console.log('Lock tx: ', txHash)
+    const txData = await web3.eth.getTransaction(txHash);
+    const txInput = txData['input'].toString();
+
+    if (txInput.slice(0, 10) === '0xa35a96b8') {
+        const deployer = txData['from'].toString();
+        const txReceipt = await web3.eth.getTransactionReceipt(txHash);
+        let poolAddress = [];
+        let unlockTime = [];
+        let lockAmount = [];
+        for (let i = 0; i < txReceipt['logs'].length; i++) {
+            let topics = txReceipt['logs'][i]['topics'];
+            if (topics) {
+                if (topics[0] === '0x0c396cd989a39f4459b5fa1aed6a9a8dcdbc45908acfd67e028cd568da98982c') {
+                    poolAddress.push(txReceipt['logs'][i]['address'])
+                }
+            }
+            if (txReceipt['logs'][i]['address'] === '0x231278edd38b00b07fbd52120cef685b9baebcc1') {
+                let lockData = txReceipt['logs'][i]['data']?.toString();
+                let unlockTimeHex = lockData?.slice(6 * 64 + 2, 7 * 64 + 2);
+                let lockAmountHex = lockData?.slice(64 * 17 + 2, 64 * 18 + 2);
+                if (unlockTimeHex) {
+                    unlockTime.push(parseInt(unlockTimeHex, 16));
+                }
+                if (lockAmountHex) {
+                    lockAmount.push(parseInt(lockAmountHex, 16));
+                }
+            }
+        }
+
+        const currentBlock = web3.eth.getBlockNumber().then(value => { return Number(value) });
+        const urlGetRenoun = `https://api.basescan.org/api?module=account&action=txlist&address=${deployer}&page=1&offset=50&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY}`
+        let isRenounced = false;
+
+        await fetch(urlGetRenoun).then(
+            response => response.json()
+        ).then(async response => {
+            for (let i = 0; i < response['result'].length; i++) {
+                if (response['result'][i]['input']) {
+                    if (response['result'][i]['input'].slice(0, 10) === '0x715018a6') {
+                        isRenounced = true;
+                    }
+                }
+            }
+        })
+
+        const abi = [
+            {
+                "inputs": [],
+                "name": "token1",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "liquidity",
+                "outputs": [
+                    {
+                        "internalType": "uint128",
+                        "name": "",
+                        "type": "uint128"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ] as const;
+        let contract = new web3.eth.Contract(abi, poolAddress[0]);
+        const CA = await contract.methods.token1().call();
+        const liquidity = await contract.methods.liquidity().call();
+
+        let current = new Date();
+        let date = current.getFullYear() + '-' + ('0' + (current.getMonth() + 1)).slice(-2) + '-' + ('0' + current.getDate()).slice(-2);
+        let time = ('0' + current.getHours()).slice(-2) + ":00:00";
+        let currentTime = Date.parse(date + 'T' + time);
+        console.log(current.toLocaleTimeString())
+        let lockDays = ((unlockTime[0] - Number(currentTime) / 1000) / (60 * 60 * 24)).toFixed(2);
+        console.log('Lock days: ', lockDays)
+        const lockPercent = lockAmount[0] / Number(liquidity) * 100;
+        console.log('Lock Percent: ', lockPercent)
+        if (CA) {
+            const tokenInfo = await getTokenInfo(CA)
+            console.log(tokenInfo)
+            const totalHolders = await getTotalHolders(CA);
+            console.log('Total Holders: ', totalHolders)
+            const holders_clog = await getTopHolders(deployer, CA, 10);
+            console.log('Holders: ', holders_clog[0])
+            const initLp = (await getInitialLp(CA, deployer, poolAddress[0]))?.toFixed(2);
+            console.log('LP: ', initLp)
+            const MC = await getMCUniswap(CA, 0)
+            const holdersBalance = holders_clog[0]
+            const clog = holders_clog[1];
+            const tokenName = tokenInfo[0];
+            const tokenSym = tokenInfo[1];
+            const tokenDec = tokenInfo[2];
+
+            return [CA, lockDays, lockPercent, totalHolders, holdersBalance, clog, isRenounced, initLp, tokenName, tokenSym, tokenDec, MC]
         }
     }
 }
