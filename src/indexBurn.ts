@@ -1,10 +1,9 @@
 import { run } from '@grammyjs/runner';
-// import { bot } from './ETHBurnbot';
-import { bot } from './BaseLockbot';
+import { bot } from './BaseBurnbot';
 
 const runBot = () => {
     if (!bot.isInited()) {
-        console.log('BOT INITIATED!!!');
+        console.log('BOT BURN INITIATED!!!');
         run(bot);
     }
 };

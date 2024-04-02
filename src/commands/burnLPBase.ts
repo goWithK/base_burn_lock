@@ -1,5 +1,6 @@
 import Web3, { Bytes } from 'web3';
 import { ethers } from 'ethers';
+import Moralis from 'moralis';
 import OM_ABI from '../JSON/Only_moons_ABI.json';
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -22,7 +23,7 @@ async function getLpPercent(amountLpInt: number, lpAddress: any, deployer: strin
     return lpPercent
 }
 
-async function getMCUniswap(CA: any, burnAmount: any) {
+async function getMCUniswapV2(CA: any, burnAmount: any) {
     const requestHeaders: HeadersInit = new Headers();
     requestHeaders.set('accept', 'application/json');
     requestHeaders.set('x-api-key', `${process.env.CHAINBASE_API_KEY}`);
@@ -95,6 +96,10 @@ async function getMCUniswap(CA: any, burnAmount: any) {
             let reserves = await contract2.methods.getReserves().call();
             let reserve0 = reserves['0'];
             let reserve1 = reserves['1'];
+            if (reserves['0'] < reserves['1']) {
+                reserve0 = reserves['1'];
+                reserve1 = reserves['0'];
+            }
 
             const abiTotalSupply = [
                 {
@@ -115,11 +120,49 @@ async function getMCUniswap(CA: any, burnAmount: any) {
             let totalSupply = await contract3.methods.totalSupply().call();
 
             //MC: reserve1/reserve0*(totalSupply - burnAmount)*priceWETH
-            return (Number(reserve1)/Number(reserve0)*(Number(totalSupply) - Number(burnAmount))/10**18*data['data']['price']).toFixed(0)
+            return (Number(reserve1) / Number(reserve0) * (Number(totalSupply) - Number(burnAmount)) / 10 ** 18 * data['data']['price']).toFixed(0)
         })
         .catch(error => console.error(error));
 
     return MC
+}
+
+async function getMC(CA: any, burnAmount: any) {
+    try {
+        await Moralis.start({
+          apiKey: process.env.MORALIS_API_KEY
+        });
+
+        const abiTotalSupply = [
+            {
+                "inputs": [],
+                "name": "totalSupply",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ] as const;
+        let contract3 = new web3.eth.Contract(abiTotalSupply, CA);
+        let totalSupply = await contract3.methods.totalSupply().call();
+      
+        const response = await Moralis.EvmApi.token.getTokenPrice({
+          "chain": "0x2105",
+          "include": "percent_change",
+          "address": CA
+        });
+        const priceData = response.toJSON();
+        const price = Number(priceData['usdPrice']);
+        
+        return (price*(Number(totalSupply) - Number(burnAmount)) / 10**18).toFixed(0)
+      } catch (e) {
+        console.error(e);
+      }
 }
 
 async function getCAbyDeployer(deployer: string) {
@@ -524,20 +567,23 @@ export async function getBurnTx(txHash: Bytes) {
         if (CA_renou[0]) {
             const tokenInfo = await getTokenInfo(CA_renou[0])
             console.log(tokenInfo)
+            const tokenName = tokenInfo[0];
+            const tokenSym = tokenInfo[1];
+            const tokenDec = Number(tokenInfo[2]);
             const totalHolders = await getTotalHolders(CA_renou[0]);
             console.log('Total Holders: ', totalHolders)
             const holders_clog = await getTopHolders(deployer, CA_renou[0], 10);
             console.log('Holders: ', holders_clog[0])
             const initLp = await getInitialLp(CA_renou[0], deployer, lpAddress);
             console.log('LP: ', initLp)
-            const MC = await getMCUniswap(CA_renou[0], amountLpBurnInt)
+            var MC = await getMCUniswapV2(CA_renou[0], amountLpBurnInt)
+            if (MC === undefined) {
+                MC = await getMC(CA_renou[0], amountLpBurnInt)
+            }
             const holdersBalance = holders_clog[0]
             const clog = holders_clog[1]
-            const tokenName = tokenInfo[0];
-            const tokenSym = tokenInfo[1];
-            const tokenDec = tokenInfo[2];
 
-            return [CA_renou[0], burnPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp, tokenName, tokenSym, tokenDec, MC]
+            return [CA_renou[0], burnPercent.toFixed(2), totalHolders, holdersBalance, clog, CA_renou[1], initLp, tokenName, tokenSym, tokenDec, MC]
         } else {
             console.log(`${deployer} is not an owner!!!`)
         }
@@ -575,20 +621,23 @@ export async function getLockInfoMoon(txHash: any) {
         if (CA_renou[0]) {
             const tokenInfo = await getTokenInfo(CA_renou[0])
             console.log(tokenInfo)
+            const tokenName = tokenInfo[0];
+            const tokenSym = tokenInfo[1];
+            const tokenDec = Number(tokenInfo[2]);
             const totalHolders = await getTotalHolders(CA_renou[0]);
             console.log('Total Holders: ', totalHolders)
             const holders_clog = await getTopHolders(deployer, CA_renou[0], 10);
             console.log('Holders: ', holders_clog[0])
             const initLp = await getInitialLp(CA_renou[0], deployer, lpAddress);
             console.log('LP: ', initLp)
-            const MC = await getMCUniswap(CA_renou[0], 0)
+            var MC = await getMCUniswapV2(CA_renou[0], 0)
+            if (MC === undefined) {
+                MC = await getMC(CA_renou[0], 0)
+            }
             const holdersBalance = holders_clog[0]
             const clog = holders_clog[1]
-            const tokenName = tokenInfo[0];
-            const tokenSym = tokenInfo[1];
-            const tokenDec = tokenInfo[2];
 
-            return [CA_renou[0], lockDays, lockPercent, totalHolders, holdersBalance, clog, CA_renou[1], initLp, tokenName, tokenSym, tokenDec, MC]
+            return [CA_renou[0], lockDays, lockPercent.toFixed(2), totalHolders, holdersBalance, clog, CA_renou[1], initLp, tokenName, tokenSym, tokenDec, MC]
         }
     }
 }
@@ -684,20 +733,23 @@ export async function getLockInfoUNCX(txHash: any) {
         if (CA) {
             const tokenInfo = await getTokenInfo(CA)
             console.log(tokenInfo)
+            const tokenName = tokenInfo[0];
+            const tokenSym = tokenInfo[1];
+            const tokenDec = Number(tokenInfo[2]);
             const totalHolders = await getTotalHolders(CA);
             console.log('Total Holders: ', totalHolders)
             const holders_clog = await getTopHolders(deployer, CA, 10);
             console.log('Holders: ', holders_clog[0])
             const initLp = (await getInitialLp(CA, deployer, poolAddress[0]))?.toFixed(2);
             console.log('LP: ', initLp)
-            const MC = await getMCUniswap(CA, 0)
+            var MC = await getMCUniswapV2(CA, 0)
+            if (MC === undefined) {
+                MC = await getMC(CA, 0)
+            }
             const holdersBalance = holders_clog[0]
             const clog = holders_clog[1];
-            const tokenName = tokenInfo[0];
-            const tokenSym = tokenInfo[1];
-            const tokenDec = tokenInfo[2];
 
-            return [CA, lockDays, lockPercent, totalHolders, holdersBalance, clog, isRenounced, initLp, tokenName, tokenSym, tokenDec, MC]
+            return [CA, lockDays, lockPercent.toFixed(2), totalHolders, holdersBalance, clog, isRenounced, initLp, tokenName, tokenSym, tokenDec, MC]
         }
     }
 }

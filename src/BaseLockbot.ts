@@ -11,7 +11,7 @@ import { COMMANDS } from './commands';
 import { getBurnTx, getLockInfoMoon, getLockInfoUNCX } from './commands/burnLPBase';
 
 //Env vars
-const BOT_TOKEN = process.env.BURN_ETH_BOT || '';
+const BOT_TOKEN = process.env.LOCK_BASE_BOT || '';
 const web3 = new Web3(new Web3.providers.HttpProvider(`${process.env.ALCHEMY_ENDPOINT_BASE}`))
 
 //BOT CONFIG
@@ -62,71 +62,6 @@ const formatter = new Intl.NumberFormat('en-US', {
     currency: 'USD',
 });
 
-async function getBurnInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
-    if(trueOrFalse) {
-        const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-        const startblock = Number(currentBlock)-3;
-        const UrlTransferBurn = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startblock}&toBlock=${currentBlock}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_2_opr=and&topic2=0x000000000000000000000000000000000000000000000000000000000000dead&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY4}`
-        var responseClone: any;
-        let info = await fetch(UrlTransferBurn)
-        .then(function (response) {
-            responseClone = response.clone(); 
-            return response.json();
-        })
-        .then(async function (data) {
-            await delay(1000);
-            if (data['result'] !== 'Error!' && data['result'].length > 0) {
-                // console.log('Burn: ', data['result'])
-                let output = [];
-                for (let i = 0; i < data['result'].length; i++) {
-                    const txHash = data['result'][i]['transactionHash'];
-                    const burnInfo = await getBurnTx(txHash);
-                    output.push(burnInfo)
-
-                    return output
-                }
-            }
-        }, function (rejectionReason) { 
-            console.log('Error parsing JSON from response:', rejectionReason, responseClone);
-            responseClone.text().then(function (bodyText: any) {
-                console.log('Received the following instead of valid JSON:', bodyText); 
-            });
-        });
-        //console.log('Info burn:', info)
-        if (info) {
-            for (let i = 0; i < info.length; i++) {
-                let eachInfo = info[i];
-                let holder_msg = 'Holders: ';
-                if (eachInfo) {
-                    let title = ctx.emoji`${"fire"} <b>LP BURNT</b> | ${eachInfo[7]} | ${eachInfo[8]} \n \n`
-                    let ca_msg = `<a href="https://basescan.org/address/${eachInfo[0]}">CA:</a> <code>${eachInfo[0]}</code>\n \n`;
-                    let mc_msg = ctx.emoji`${"bar_chart"} MC: <b>${formatter.format(eachInfo[10])}</b>\n`
-                    let burn_msg = `Liquidity: <b>**${eachInfo[1]}% of Liquidity Burnt**</b>\n`
-                    let total_msg = ctx.emoji`${"busts_in_silhouette"} Total holders: ${eachInfo[2]} \n`;
-                    let ca_balance_msg = `Clog: ${eachInfo[4]} \n`;
-                    let renounced_msg = ctx.emoji`Renounced: ${"cross_mark"} \n`
-                    if (eachInfo[5]) { renounced_msg = ctx.emoji`Renounced: ${"check_mark_button"} \n` }
-                    let initLp_msg = ctx.emoji`${"money_with_wings"} Init LP: ${eachInfo[6]} ETH\n`;
-                    let holderAddress = Object.keys(eachInfo[3]);
-                    let list_msg = [];
-                    let holderLimit = 5;
-                    if (holderLimit > holderAddress.length) { holderLimit = holderAddress.length }
-                    for (let i = 0; i < holderLimit; i++) {
-                        list_msg.push(`<a href="https://basescan.org/address/${holderAddress[i]}">${eachInfo[3][holderAddress[i]]}</a>`)
-                    }
-                    let tg_msg = title + ca_msg + burn_msg + mc_msg +total_msg + ca_balance_msg + renounced_msg + initLp_msg + holder_msg + list_msg.join(' | ');
-                    await bot.api.sendMessage(
-                        chatId,
-                        tg_msg,
-                        { parse_mode: "HTML" },
-                    );
-                }
-            }
-        }
-        await delay(3500);
-        await getBurnInfo(trueOrFalse, chatId, ctx);
-    }
-}
 
 async function getLockInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
     if(trueOrFalse) {
@@ -263,12 +198,7 @@ bot.command('start', async (ctx) => {
         } catch (error) {
             console.log(error)
         }
-        try {
-            await getBurnInfo(true, chatId, ctx);
-        } catch (error) {
-            console.log(error)
-        } 
-        await delay(1000); 
+        await delay(1000);
     } catch (error) {
         console.log(error)
     }
