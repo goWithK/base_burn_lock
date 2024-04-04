@@ -8,10 +8,10 @@ import Web3 from 'web3';
 import { globalConfig, groupConfig, outConfig } from './common/limitsConfig';
 import { BotContext } from './types';
 import { COMMANDS } from './commands';
-import { getBurnTx, getLockInfoMoon, getLockInfoUNCX } from './commands/burnLPBase';
+import { getBurnTx } from './commands/burnLPBase';
 
 //Env vars
-const BOT_TOKEN = process.env.BURN_BASE_BOT || '';
+const BOT_TOKEN = process.env.LOCK_BASE_BOT || '';
 const web3 = new Web3(new Web3.providers.HttpProvider(`${process.env.ALCHEMY_ENDPOINT_BASE}`))
 
 //BOT CONFIG
@@ -39,7 +39,7 @@ bot.use(
 
 bot.use(
     limit({
-        // Allow only 3 messages to be handled every 2 seconds.
+        // Allow only 6 messages to be handled every 3 secs.
         timeFrame: 3000,
         limit: 6,
         // This is called when the limit is exceeded.
@@ -63,10 +63,11 @@ const formatter = new Intl.NumberFormat('en-US', {
 });
 
 async function getBurnInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
-    if(trueOrFalse) {
+    if (trueOrFalse) {
         const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-        const startblock = Number(currentBlock)-3;
-        const UrlTransferBurn = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startblock}&toBlock=${currentBlock}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_2_opr=and&topic2=0x000000000000000000000000000000000000000000000000000000000000dead&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY4}`
+        // const startblock = Number(currentBlock)-3;
+        const startblock = 12176231;
+        const UrlTransferBurn = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startblock}&toBlock=${currentBlock}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_2_opr=and&topic2=0x000000000000000000000000000000000000000000000000000000000000dead&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY}`
         var responseClone: any;
         let info = await fetch(UrlTransferBurn)
         .then(function (response) {
@@ -92,7 +93,8 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
                 console.log('Received the following instead of valid JSON:', bodyText); 
             });
         });
-        //console.log('Info burn:', info)
+
+        // console.log('Info burn:', info)
         if (info) {
             for (let i = 0; i < info.length; i++) {
                 let eachInfo = info[i];
@@ -100,6 +102,7 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
                 if (eachInfo) {
                     let title = ctx.emoji`${"fire"} <b>LP BURNT</b> | ${eachInfo[7]} | ${eachInfo[8]} \n \n`
                     let ca_msg = `<a href="https://basescan.org/address/${eachInfo[0]}">CA:</a> <code>${eachInfo[0]}</code>\n \n`;
+                    console.log(formatter.format(eachInfo[10]))
                     let mc_msg = ctx.emoji`${"bar_chart"} MC: <b>${formatter.format(eachInfo[10])}</b>\n`
                     let burn_msg = `Liquidity: <b>**${eachInfo[1]}% of Liquidity Burnt**</b>\n`
                     let total_msg = ctx.emoji`${"busts_in_silhouette"} Total holders: ${eachInfo[2]} \n`;
@@ -123,14 +126,15 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
                 }
             }
         }
-        await delay(3500);
+        await delay(4000);
         await getBurnInfo(trueOrFalse, chatId, ctx);
     }
 }
 
 //START COMMAND
 bot.command('start', async (ctx) => {
-    const chatId = -1002085734483;
+    // const chatId = ctx.msg.chat.id;
+    const chatId = -4114916111;
     try {
         try {
             await getBurnInfo(true, chatId, ctx);
@@ -142,6 +146,7 @@ bot.command('start', async (ctx) => {
         console.log(error)
     }
 });
+
 
 //HELP COMMAND
 bot.command('help', async (ctx) => {

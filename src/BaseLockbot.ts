@@ -8,7 +8,7 @@ import Web3 from 'web3';
 import { globalConfig, groupConfig, outConfig } from './common/limitsConfig';
 import { BotContext } from './types';
 import { COMMANDS } from './commands';
-import { getBurnTx, getLockInfoMoon, getLockInfoUNCX } from './commands/burnLPBase';
+import { getLockInfoMoon, getLockInfoUNCX } from './commands/burnLPBase';
 
 //Env vars
 const BOT_TOKEN = process.env.LOCK_BASE_BOT || '';
@@ -39,7 +39,7 @@ bot.use(
 
 bot.use(
     limit({
-        // Allow only 3 messages to be handled every 2 seconds.
+        // Allow only 6 messages to be handled every 3 secs.
         timeFrame: 3000,
         limit: 6,
         // This is called when the limit is exceeded.
@@ -62,11 +62,11 @@ const formatter = new Intl.NumberFormat('en-US', {
     currency: 'USD',
 });
 
-
 async function getLockInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
-    if(trueOrFalse) {
+    if (trueOrFalse) {
         const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-        const startblock = Number(currentBlock)-3;
+        // const startblock = Number(currentBlock)-3;
+        const startblock = 12176231;
         const UrlLockTokenMoon = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startblock}&toBlock=${currentBlock}&address=0x77110f67C0EF3c98c43570BADe06046eF6549876&topic0=0x531cba00a411ade37b4ca8175d92c94149f19536bd8e5a83d581aa7f040d192e&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY}`
 
         var responseClone1: any;
@@ -94,7 +94,6 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
                 console.log('Received the following instead of valid JSON:', bodyText); 
             });
         });
-        //console.log('Info lock:', info)
         if (info1) {
             var holder_msg = 'Holders: ';
             for (let i = 0; i < info1.length; i++) {
@@ -191,7 +190,8 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
 
 //START COMMAND
 bot.command('start', async (ctx) => {
-    const chatId = -1002085734483;
+    // const chatId = ctx.msg.chat.id;
+    const chatId = -4114916111;
     try {
         try {
             await getLockInfo(true, chatId, ctx);
@@ -203,6 +203,7 @@ bot.command('start', async (ctx) => {
         console.log(error)
     }
 });
+
 
 //HELP COMMAND
 bot.command('help', async (ctx) => {
