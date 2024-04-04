@@ -190,8 +190,8 @@ async function getLockInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
 
 //START COMMAND
 bot.command('start', async (ctx) => {
-    // const chatId = ctx.msg.chat.id;
-    const chatId = -4114916111;
+    const chatId = -1002085734483;
+    console.log('Lock bot started!!!')
     try {
         try {
             await getLockInfo(true, chatId, ctx);

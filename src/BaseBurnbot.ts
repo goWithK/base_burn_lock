@@ -133,8 +133,8 @@ async function getBurnInfo(trueOrFalse: boolean, chatId: any, ctx: any) {
 
 //START COMMAND
 bot.command('start', async (ctx) => {
-    // const chatId = ctx.msg.chat.id;
-    const chatId = -4114916111;
+    console.log('Burn bot started!!!')
+    const chatId = -1002085734483;
     try {
         try {
             await getBurnInfo(true, chatId, ctx);
