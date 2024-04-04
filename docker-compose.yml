@@ -1,0 +1,11 @@
+version: "3.7"
+services:
+  index_lock_bot:
+    build:
+      context: .
+      dockerfile: ./dockerfile
+    image: index_lock_bot
+    container_name: index_lock_bot
+    env_file:
+      - ./.env.dev
+    restart: unless-stopped
