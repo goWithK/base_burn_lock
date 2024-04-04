@@ -7,5 +7,5 @@ services:
     image: index_lock_bot
     container_name: index_lock_bot
     env_file:
-      - ./.env.dev
+      - ./dev.env
     restart: unless-stopped
