@@ -1,1 +1,0 @@
-// Setup & Initiate bot, call to Message to build and send message to Telegram
