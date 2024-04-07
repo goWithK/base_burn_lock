@@ -12,15 +12,22 @@ import { MethodNotImplementedError } from 'web3';
 class TelegramBot {
 
     protected _bot: Bot<ParseModeFlavor<BotContext>>;
+    private _commandHandler: IBotCommand;
 
-    public constructor () {
+    public constructor (commandHandler: IBotCommand) {
+
+        this._commandHandler = commandHandler;
+
         this._bot = new Bot<ParseModeFlavor<BotContext>>(
-            process.env.LOCK_BASE_BOT || '6783899149:AAGbhNZ4EkYjdgZMl7ghpaWgV_BOmrMqooY'
+            process.env.LOCK_BASE_BOT || ''
         );
 
         this._initConfig();
-        this._registerCommands();
         this._bot.catch(this._crashHandler);
+        
+        this._commandHandler.start(this._bot);
+        this._commandHandler.stop(this._bot);
+        this._commandHandler.help(this._bot);
     }
 
     private _initConfig(): void {

@@ -1,9 +1,10 @@
-import { Context, SessionFlavor } from 'grammy';
+import { Bot, Context, SessionFlavor } from 'grammy';
 import {
     type Conversation,
     type ConversationFlavor,
 } from '@grammyjs/conversations';
 import { type EmojiFlavor } from '@grammyjs/emoji';
+import { ParseModeFlavor } from '@grammyjs/parse-mode';
 
 interface SessionData {
     itemLevel: string;
@@ -16,9 +17,9 @@ export type ConverstaionContext = Conversation<BotContext>;
 
 
 export interface IBotCommand {
-    start(ctx: any): Promise<void>;
-    stop(ctx: any): Promise<void>;
-    help(ctx: any): Promise<void>;
+    start(bot: Bot<ParseModeFlavor<BotContext>>): void;
+    stop(bot: Bot<ParseModeFlavor<BotContext>>): void;
+    help(bot: Bot<ParseModeFlavor<BotContext>>): void;
 }
 
 export enum BotType {
