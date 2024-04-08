@@ -90,7 +90,7 @@ class TelegramBot {
 
     public run(): void {
         if (!this.isInited()) {
-            console.log('BOT LOCK INITIATED!!!');
+            console.log('BOT INITIATED!!!');
             run(this._bot);
         }
     }

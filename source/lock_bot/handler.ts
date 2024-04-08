@@ -18,6 +18,7 @@ export class LockBotHandler implements IBotCommand {
 
     public start(bot: Bot<ParseModeFlavor<BotContext>>): void {
         bot.command('start', async (ctx: any) => {
+            console.log('LOCK IS RUNNING')
             console.log(typeof ctx);
             const chatId = -4114916111;
             // const tgMsg = ctx.emoji`${"locked"} <b>LP LOCK</b> | Test | Test \n\n`
@@ -64,7 +65,7 @@ export class LockBotHandler implements IBotCommand {
         // const startblock = Number(currentBlock)-3;
         const startblock = 12176231;
 
-        const resp = await BaseScanAPI.getTokenMoon(currentBlock, startblock);
+        const resp = await BaseScanAPI.getLockOM(currentBlock, startblock);
 
         if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
             return;
