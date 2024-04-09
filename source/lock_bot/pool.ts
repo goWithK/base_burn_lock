@@ -137,7 +137,7 @@ export class DataPool {
                 return this._infoOM
             }
 
-            await this._fulFillTransactionData;
+            await this._fulFillTransactionData();
             await this._fulfillInfoOM();
 
             return this._infoOM;
