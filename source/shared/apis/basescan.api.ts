@@ -39,6 +39,22 @@ export class BaseScanAPI {
         return resp.json();
     }
 
+    public static async getBalanceAddress(address: string) {
+        const urlGetBalance = `https://api.basescan.org/api?module=account&action=balance&address=${address}&tag=latest&apikey=${process.env.API_BASESCAN_KEY}`
+
+        const resp = await fetch(urlGetBalance);
+
+        return resp.json();
+    }
+
+    public static async getAbi(contractAddress: string) {
+        const urlGetAbi = `https://api.basescan.org/api?module=contract&action=getabi&address=${contractAddress}&apikey=${process.env.API_BASESCAN_KEY}`; 
+
+        const resp = await fetch(urlGetAbi);
+
+        return resp
+    }
+
     public static async getTxnbyAddress(currentBlock: number, address: string) {
         const urlGetCA = `https://api.basescan.org/api?module=account&action=txlist&address=${address}&page=1&offset=500&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY}`
     
