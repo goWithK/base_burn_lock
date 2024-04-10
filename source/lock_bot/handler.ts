@@ -86,6 +86,8 @@ export class LockBotHandler implements IBotCommand {
                 msgContent,
                 { parse_mode: "HTML" },
             );
+        } else {
+            console.log(`Error in tx: ${transactionHash}`)
         }
     }
 
@@ -116,6 +118,8 @@ export class LockBotHandler implements IBotCommand {
                 msgContent,
                 { parse_mode: "HTML" },
             );
+        } else {
+            console.log(`Error in tx: ${transactionHash}`)
         }
     }
 
@@ -146,6 +150,8 @@ export class LockBotHandler implements IBotCommand {
                 msgContent,
                 { parse_mode: "HTML" },
             );
+        } else {
+            console.log(`Error in tx: ${transactionHash}`)
         }
     }
 
@@ -176,6 +182,8 @@ export class LockBotHandler implements IBotCommand {
                 msgContent,
                 { parse_mode: "HTML" },
             );
+        } else {
+            console.log(`Error in tx: ${transactionHash}`)
         }
     }
 
@@ -206,6 +214,8 @@ export class LockBotHandler implements IBotCommand {
                 msgContent,
                 { parse_mode: "HTML" },
             );
+        } else {
+            console.log(`Error in tx: ${transactionHash}`)
         }
     }
 }

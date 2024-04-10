@@ -18,9 +18,8 @@ export class Message {
         if (contractAddress) {
             const tokenName = await this._dataPool.tokenName;
             const tokenSymbol = await this._dataPool.tokenSymbol;
-            const lockDays = await this._dataPool.lockDays;
-            const lockPercent = await this._dataPool.lockPercent;
-            const marketCapLock = await this._dataPool.marketCapLock;
+            const burnPercent = await this._dataPool.burnPercent;
+            const marketCapBurn = await this._dataPool.marketCapBurn;
             const totalTxns = await this._dataPool.totalTxns;
             const totalHolders = await this._dataPool.totalHolders;
             const topHolders = await this._dataPool.topHolders;
@@ -33,10 +32,10 @@ export class Message {
             const initialLp = await this._dataPool.initialLp;
             const liquidity = await this._dataPool.liquidity;
 
-            let title = this._ctx.emoji`${"locked"} <b>LP LOCK</b> | ${tokenName} | ${tokenSymbol} \n\n`
+            let title = this._ctx.emoji`${"fire"} <b>LP BURNT</b> | ${tokenName} | ${tokenSymbol} \n\n`
             let ca_msg = `<a href="https://basescan.org/address/${contractAddress}">CA:</a> <code>${contractAddress}</code>\n`;
-            let lock_msg = this._ctx.emoji`<b>${'locked'} Liquidity: **${lockPercent.toFixed(2)} % of Liquidity Locked for ${lockDays.toFixed(0)} days**</b>\n`;
-            let mc_msg = this._ctx.emoji`${"bar_chart"} MC: <b>${formatter.format(marketCapLock)}</b>\n`
+            let lock_msg = this._ctx.emoji`<b>${"fire"} Liquidity: **${burnPercent.toFixed(2)} % of Liquidity Burnt **</b>\n`;
+            let mc_msg = this._ctx.emoji`${"bar_chart"} MC: <b>${formatter.format(marketCapBurn)}</b>\n`
             let initLp_msg = this._ctx.emoji`${"money_with_wings"} Initial LP: ${initialLp} ETH ${"left_arrow_curving_right"} Current LP: ${formatter.format(liquidity)} \n`;
             let stats_msg = this._ctx.emoji`${"left_arrow_curving_right"} Live: ${liveTime} ${"left_arrow_curving_right"} Holders: ${totalHolders} ${"left_arrow_curving_right"} Txns: ${totalTxns}\n`;
             let ca_balance_msg = `Clog: ${clog}% \n`;
@@ -58,6 +57,7 @@ export class Message {
 
             return tg_msg
         } else {
+            console.log(`Error for contract: ${contractAddress}`)
             return ''
         }
     }

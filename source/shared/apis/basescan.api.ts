@@ -39,6 +39,14 @@ export class BaseScanAPI {
         return resp.json();
     }
 
+    public static async getBurnEvent(currentBlock: number, startBlock: number) {
+        const UrlTransferBurn = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startBlock}&toBlock=${currentBlock}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_2_opr=and&topic2=0x000000000000000000000000000000000000000000000000000000000000dead&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY}`
+
+        const resp = await fetch(UrlTransferBurn);
+
+        return resp.json()
+    }
+
     public static async getBalanceAddress(address: string) {
         const urlGetBalance = `https://api.basescan.org/api?module=account&action=balance&address=${address}&tag=latest&apikey=${process.env.API_BASESCAN_KEY}`
 
