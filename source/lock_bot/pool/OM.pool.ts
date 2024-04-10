@@ -83,6 +83,7 @@ export class DataPool {
                 
                 if (resp['result'][i]['input'].slice(0, 10) === '0x715018a6') {
                     this._isRenounced = true;
+                    isLatest = true;
                 }
             }
 
@@ -134,8 +135,7 @@ export class DataPool {
                 return this._deployerAddress
             }
 
-            const lockData = await this.lockInfo;
-            this._deployerAddress = lockData['args'][1];
+            await this._fulFillTransactionData();
 
             return this._deployerAddress
         })();
