@@ -14,12 +14,12 @@ class TelegramBot {
     protected _bot: Bot<ParseModeFlavor<BotContext>>;
     private _commandHandler: IBotCommand;
 
-    public constructor (commandHandler: IBotCommand) {
+    public constructor (commandHandler: IBotCommand, botToken: string) {
 
         this._commandHandler = commandHandler;
 
         this._bot = new Bot<ParseModeFlavor<BotContext>>(
-            process.env.LOCK_BASE_BOT || ''
+            botToken
         );
 
         this._initConfig();

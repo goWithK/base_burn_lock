@@ -51,6 +51,8 @@ export class DataPool {
     private _deployerBalance: number;
     private _clog: string;
     private _isVerified: boolean;
+    private _dexData: any;
+    private _liquidity: number;
 
     public constructor(transactionHash: string, mode: string = 'TF') {
 
@@ -395,8 +397,10 @@ export class DataPool {
                 return this._totalTxns
             }
 
-            const resp = await DexScreenerAPI.getDexData(await this.pairAddress)
-            let txns24h = resp['pair']['txns']['h24']
+            if (!this._dexData) {
+                this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+            }
+            let txns24h = this._dexData['pair']['txns']['h24']
             let buyTxns = Number(txns24h['buys']);
             let sellTxns = Number(txns24h['sells']);
             this._totalTxns = buyTxns + sellTxns
@@ -410,9 +414,25 @@ export class DataPool {
                 return this._priceToken
             }
 
-            const resp = await DexScreenerAPI.getDexData(await this.pairAddress)
-            this._priceToken = Number(resp['pair']['priceUsd'])
+            if (!this._dexData) {
+                this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+            }
+            this._priceToken = Number(this._dexData['pair']['priceUsd'])
             return this._priceToken
+        })();
+    }
+
+    public get liquidity(): Promise<number> {
+        return (async () => {
+            if (this._liquidity) {
+                return this._liquidity
+            }
+
+            if (!this._dexData) {
+                this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+            }
+            this._liquidity = Number(this._dexData['pair']['liquidity']['usd'])
+            return this._liquidity
         })();
     }
 
@@ -422,8 +442,10 @@ export class DataPool {
                 return this._liveTime
             }
 
-            const resp = await DexScreenerAPI.getDexData(await this.pairAddress)
-            let pairCreatedAt = Number(resp['pair']['pairCreatedAt'])
+            if (!this._dexData) {
+                this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+            }
+            let pairCreatedAt = Number(this._dexData['pair']['pairCreatedAt'])
             let currentTime = new Date();
             this._liveTime =  convertSeconds(((Number(currentTime) - pairCreatedAt) / 1000 / 60))
             return this._liveTime
