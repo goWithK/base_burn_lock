@@ -13,13 +13,6 @@ export class Message {
         this._ctx = ctx
     }
 
-    // public async fillData(): Promise<void> {
-    //     const title = this._chatCtx.emoji`${"locked"} <b>LP LOCK</b> | ${await this._dataPool.tokenName} | ${await this._dataPool.tokenSymbol} \n\n`
-    //     const lock = this._chatCtx.emoji`<b>${'locked'} Liquidity: **${await this._dataPool.liquidity} % of Liquidity Locked for ${await this._dataPool.lockDays} days**</b>\n`;
-
-    //     this._content = title + lock;
-    // }
-
     public async getMsgContent(): Promise<string> {
         const contractAddress = await this._dataPool.contractAddress;
         if (contractAddress) {
