@@ -7,6 +7,7 @@ import { LockBotHandler } from './source/lock_bot/handler';
 dotenv.config();
 
 const runApp = async () => {
+    //TODO: input argument to define which bot
     try {
         const commandHandler = new LockBotHandler();
         const bot = new TelegramBot(commandHandler);

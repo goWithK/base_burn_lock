@@ -446,8 +446,6 @@ export class DataPool {
         })();
     }
 
-    
-
     private async _fulFillTransactionData(): Promise<void> {
         const transaction = await this._web3.eth.getTransaction(this._transactionHash);
         this._deployer = transaction?.from.toString();
