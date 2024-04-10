@@ -1,7 +1,7 @@
 import Web3 from "web3";
 import { BaseScanAPI } from "../shared/apis/basescan.api";
 import { Message } from "./message";
-import { DataPool } from "./pool";
+import { DataPool } from "./pool/OM.pool";
 import { TimeHelper } from "../shared/helpers/time.helper";
 import { BotContext, IBotCommand } from "../shared/type";
 import { Bot } from "grammy";
@@ -71,20 +71,18 @@ export class LockBotHandler implements IBotCommand {
             return;
         }
 
-        for (let i = 0; i < resp.result.length; i++) {
-            const transactionHash: string = resp.result[i]?.transactionHash;
-            const dataPool = new DataPool(transactionHash);
-            const message = new Message(dataPool);
+        const transactionHash: string = resp.result[0]?.transactionHash;
+        const dataPool = new DataPool(transactionHash, 'OM');
+        const message = new Message(dataPool, ctx);
 
-            const msgContent = await message.getMsgContent();
+        const msgContent = await message.getMsgContent();
 
+        if (msgContent != ''){
             await bot.api.sendMessage(
                 chatId,
                 msgContent,
                 { parse_mode: "HTML" },
             );
-            break;
         }
-
     }
 }

@@ -8,9 +8,9 @@ export class BaseScanAPI {
     }
 
     public static async getLockTF(currentBlock: number, startBlock: number) {
-        const UrlLockTokenMoon = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startBlock}&toBlock=${currentBlock}&address=0x4F0Fd563BE89ec8C3e7D595bf3639128C0a7C33A&topic0=0xeb65d0f36862bbd8763c5e2c983c9d753267d223eee35a224d8d0a9d7ef433a2&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY}`;
+        const UrlLockTokenTF = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startBlock}&toBlock=${currentBlock}&address=0x4F0Fd563BE89ec8C3e7D595bf3639128C0a7C33A&topic0=0xeb65d0f36862bbd8763c5e2c983c9d753267d223eee35a224d8d0a9d7ef433a2&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY}`;
     
-        const resp = await fetch(UrlLockTokenMoon);
+        const resp = await fetch(UrlLockTokenTF);
 
         return resp.json();
     }
@@ -37,6 +37,22 @@ export class BaseScanAPI {
         const resp = await fetch(urlLockUNCXsushi);
 
         return resp.json();
+    }
+
+    public static async getBalanceAddress(address: string) {
+        const urlGetBalance = `https://api.basescan.org/api?module=account&action=balance&address=${address}&tag=latest&apikey=${process.env.API_BASESCAN_KEY}`
+
+        const resp = await fetch(urlGetBalance);
+
+        return resp.json();
+    }
+
+    public static async getAbi(contractAddress: string) {
+        const urlGetAbi = `https://api.basescan.org/api?module=contract&action=getabi&address=${contractAddress}&apikey=${process.env.API_BASESCAN_KEY}`; 
+
+        const resp = await fetch(urlGetAbi);
+
+        return resp
     }
 
     public static async getTxnbyAddress(currentBlock: number, address: string) {

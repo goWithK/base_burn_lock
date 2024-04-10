@@ -2,32 +2,40 @@
 
 import Web3 from "web3";
 import { ethers } from 'ethers';
-import OM_ABI from '../../src/JSON/Only_moons_ABI.json';
-import { BaseScanAPI } from "../shared/apis/basescan.api";
-import { ChainBaseAPI } from "../shared/apis/chainbase.api";
-import { DexScreenerAPI } from "../shared/apis/dexscreener.api";
+import OM_ABI from '../../../src/JSON/Only_moons_ABI.json';
+import TF_ABI from '../../../src/JSON/TF_ABI.json';
+import UNCX_sushi_ABI from '../../../src/JSON/UNCX_sushi_ABI.json';
+import UNCX_univ2_ABI from '../../../src/JSON/UNCX_univ2_ABI.json';
+import { BaseScanAPI } from "../../shared/apis/basescan.api";
+import { ChainBaseAPI } from "../../shared/apis/chainbase.api";
+import { DexScreenerAPI } from "../../shared/apis/dexscreener.api";
 import { 
     convertSeconds,
     getInitLPbyPair, 
     getInitLPbyDeployer,
-    getCAbyPair,
     getExchange,
-    getInfobyLockId
-} from "../shared/helpers/utils"
+    getCAbyPair,
+    checkFactoryV3,
+    getCAbyDeployer,
+    transferGwei2Eth,
+    checkAbi,
+    getClog
+} from "../../shared/helpers/utils"
 
 export class DataPool {
 
     private _web3;
 
-    private _transactionHash: any;
-    private _deployer: string;
-    private _isCaRenounced: boolean;
+    private _transactionHash: string;
+    private _mode: string;
+    private _deployerAddress: string;
     private _transactionInput: string;
-    private _infoOM: any;
-    private _pairAddressOM: string;
+    private _infoLock: any;
+    private _pairAddress: string;
     private _contractAddress: string;
-    private _lockPercentOM: number;
-    private _lockDaysOM: number;
+    private _exchange: string;
+    private _lockPercent: number;
+    private _lockDays: number;
     private _tokenName: string;
     private _tokenSymbol: string;
     private _tokenDecimal: number;
@@ -39,29 +47,33 @@ export class DataPool {
     private _priceToken: number;
     private _liveTime: string;
     private _marketCapLock: number;
-    private _marketCapBurn: number;
+    private _isRenounced: boolean;
+    private _deployerBalance: number;
+    private _clog: string;
+    private _isVerified: boolean;
 
-    public constructor(transactionHash: any) {
+    public constructor(transactionHash: string, mode: string = 'OM') {
 
         this._web3 = new Web3(new Web3.providers.HttpProvider(`${process.env.ALCHEMY_ENDPOINT_BASE}`))
 
         this._transactionHash = transactionHash;
+        this._mode = mode;
     }
 
-    public get caRenou(): Promise<string> {
+    public get renounced(): Promise<boolean> {
         return (async () => {
-            if (this._contractAddress) {
-                return this._contractAddress;
+            if (this._isRenounced) {
+                return this._isRenounced;
             }
 
-            if (!(await this.deployer)) {
+            if (!(await this.deployerAddress)) {
                 console.error('[DataPool] Cannot get CARenounce by missing Deployer');
             }
 
-            this._isCaRenounced = false;
+            this._isRenounced = false;
 
             const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-            const resp = await BaseScanAPI.getTxnbyAddress(currentBlock, await this.deployer);
+            const resp = await BaseScanAPI.getTxnbyAddress(currentBlock, await this.deployerAddress);
             let isLatest = false;
 
             for (let i = 0; i < resp['result'].length; i++) {
@@ -69,56 +81,12 @@ export class DataPool {
                     continue;
                 }
                 
-                if (resp['result'][i]['input'].slice(0, 10) === '0x60806040'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x61016060'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x60a06040'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x60c06040'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x6b204fce'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x6b033b2e'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x6bdef376'
-                    && isLatest === false
-                ) {
-                    const createTxn = resp['result'][i];
-                    const getCa = (keyName: keyof typeof createTxn) => {
-                        return createTxn[keyName]
-                    };
-
-                    isLatest = true;
-                    this._contractAddress = getCa('contractAddress');
-                    break;
-
-                } 
-                else if (resp['result'][i]['input'].slice(0, 10) === '0xf346c18d') {
-                    const createTxn = resp['result'][i];
-                    const getCa = (keyName: keyof typeof createTxn) => {
-                        return createTxn[keyName]
-                    };
-
-                    const logs = await this._web3.eth.getTransactionReceipt(getCa('hash'))
-                    const caHex = logs['logs'][0]['topics']
-                    if (caHex) {
-                        this._contractAddress = '0x' + `${caHex[2].slice(26, caHex[2].length)}`;
-                        break;
-                    }
-                } 
-                else if (resp['result'][i]['input'].slice(0, 10) === '0x715018a6') {
-                    this._isCaRenounced = true;
+                if (resp['result'][i]['input'].slice(0, 10) === '0x715018a6') {
+                    this._isRenounced = true;
                 }
             }
 
-            return this._contractAddress;
-        })();
-    }
-
-    public get deployer(): Promise<string> {
-        return (async () => {
-            if (this._deployer) {
-                return this._deployer;
-            }
-
-            await this._fulFillTransactionData();
-
-            return this._deployer;
+            return this._isRenounced;
         })();
     }
 
@@ -134,94 +102,116 @@ export class DataPool {
         })();
     }
 
-    public get lockInfoOM(): Promise<any> {
+    public get lockInfo(): Promise<any> {
         return (async () => {
-            if (this._infoOM) {
-                return this._infoOM
+            if (this._infoLock) {
+                return this._infoLock
             }
 
             await this._fulFillTransactionData();
-            await this._fulfillInfoOM();
+            await this._fulfillInfoLock(this._mode);
 
-            return this._infoOM;
+            return this._infoLock;
         })();
     }
 
-    public get pairAddressOM(): Promise<string> {
+    public get pairAddress(): Promise<string> {
         return (async () => {
-            if (this._pairAddressOM) {
-                return this._pairAddressOM
+            if (this._pairAddress) {
+                return this._pairAddress
             }
 
-            const infoOM = await this.lockInfoOM;
-            this._pairAddressOM = infoOM['args'][0]
+            const lockData = await this.lockInfo;
+            this._pairAddress = lockData['args'][0]
 
-            return this._pairAddressOM
+            return this._pairAddress
         })();
     }
 
-    public get lockPercentOM(): Promise<number> {
+    public get deployerAddress(): Promise<string> {
         return (async () => {
-            if (this._lockPercentOM) {
-                return this._lockPercentOM;
+            if (this._deployerAddress) {
+                return this._deployerAddress
             }
 
-            const infoOM = await this.lockInfoOM;
-            const lockAmount = infoOM['args'][1];
+            const lockData = await this.lockInfo;
+            this._deployerAddress = lockData['args'][1];
 
-            const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-            const resp = await BaseScanAPI.getLpAmount(currentBlock, await this.pairAddressOM ,await this.deployer);
-            const totalLp = Number(resp['result'][0]['value'])
-            this._lockPercentOM = Number(lockAmount) / Number(totalLp) * 100;
-
-            return this._lockPercentOM
+            return this._deployerAddress
         })();
     }
 
-    public get lockDaysOM(): Promise<number> {
+    public get exchange(): Promise<string> {
         return (async () => {
-            if (this._lockDaysOM) {
-                return this._lockDaysOM;
+            if (this._exchange){
+                return this._exchange
             }
 
-            const infoOM = await this.lockInfoOM;
-            const unlockTime = Number(infoOM['args'][2]);
-            let current = new Date();
-            let date = current.getFullYear() + '-' + ('0' + (current.getMonth() + 1)).slice(-2) + '-' + ('0' + current.getDate()).slice(-2);
-            let time = ('0' + current.getHours()).slice(-2) + ":00:00";
-            let currentTime = Date.parse(date + 'T' + time);
-            this._lockDaysOM = ((unlockTime - Number(currentTime) / 1000) / (60 * 60 * 24));
+            try {
+                this._exchange = await getExchange(await this.pairAddress);
+            } catch (error) {
+                console.log(error)
+                let isV3 = await checkFactoryV3(await this.pairAddress);
+                if (isV3) {
+                    this._exchange= 'UNI-V3'
+                } else {
+                    this._exchange = 'Unknown'
+                }
+            }
 
-            return this._lockDaysOM
+            return this._exchange
         })();
     }
 
-    //need advice for this function due to contract address
-    public get contractAddressOM(): Promise<string> {
+    public get contractAddress(): Promise<string> {
         return (async () => {
             if (this._contractAddress) {
                 return this._contractAddress
             }
 
-            const transactionReceipt = await this._web3.eth.getTransactionReceipt(this._transactionHash);
-            let needTopic: any = [];
-            let topics = transactionReceipt['logs'][transactionReceipt['logs'].length - 1]['topics'];
-            for (let i = 0; i < 4; i++) {
-                if (String(topics[i]) !== '0x531cba00a411ade37b4ca8175d92c94149f19536bd8e5a83d581aa7f040d192e'
-                    && String(topics[i]) !== '0x0000000000000000000000004200000000000000000000000000000000000006'
-                    && String(topics[i]) !== `0x000000000000000000000000${this._pairAddressOM.slice(2, this._pairAddressOM.length).toLowerCase()}`
-                    && String(topics[i]) !== '0x0000000000000000000000000000000000000000000000000000000000000000') {
-                    needTopic.push(topics[i])
-                }
-            }
-            
-            if (needTopic.length !== 0) {
-                this._contractAddress = '0x' + `${needTopic[0].slice(26, needTopic[0].length)}`
+            if (await this.exchange != 'Unknown'){
+                this._contractAddress = await getCAbyPair(await this.pairAddress);
             } else {
-                this._contractAddress = await this.caRenou
+                this._contractAddress = await getCAbyDeployer(await this.deployerAddress)
             }
 
             return this._contractAddress
+        })();
+    }
+
+    public get lockPercent(): Promise<number> {
+        return (async () => {
+            if (this._lockPercent) {
+                return this._lockPercent;
+            }
+
+            const lockData = await this.lockInfo;
+            const lockAmount = lockData['args'][1];
+
+            const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
+            const resp = await BaseScanAPI.getLpAmount(currentBlock, await this.pairAddress ,await this.deployerAddress);
+            const totalLp = Number(resp['result'][0]['value'])
+            this._lockPercent = Number(lockAmount) / Number(totalLp) * 100;
+
+            return this._lockPercent
+        })();
+    }
+
+    public get lockDays(): Promise<number> {
+        return (async () => {
+            if (this._lockDays) {
+                return this._lockDays;
+            }
+
+            const infoOM = await this.lockInfo;
+            const unlockTime = Number(infoOM['args'][2]);
+            let current = new Date();
+            let date = current.getFullYear() + '-' + ('0' + (current.getMonth() + 1)).slice(-2) + '-' + ('0' + current.getDate()).slice(-2);
+            let time = ('0' + current.getHours()).slice(-2) + ":00:00";
+            let currentTime = Date.parse(date + 'T' + time);
+            this._lockDays = ((unlockTime - Number(currentTime) / 1000) / (60 * 60 * 24));
+
+            return this._lockDays
         })();
     }
 
@@ -246,7 +236,7 @@ export class DataPool {
                     "type": "function"
                 }
             ] as const;
-            let contract = new this._web3.eth.Contract(abi, this._contractAddress);
+            let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
             this._tokenName = await contract.methods.name().call();
 
             return this._tokenName
@@ -274,7 +264,7 @@ export class DataPool {
                     "type": "function"
                 }
             ] as const;
-            let contract = new this._web3.eth.Contract(abi, this._contractAddress);
+            let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
             this._tokenSymbol = await contract.methods.symbol().call();
 
             return this._tokenSymbol
@@ -302,7 +292,7 @@ export class DataPool {
                     "type": "function"
                 }
             ] as const;
-            let contract = new this._web3.eth.Contract(abi, this._contractAddress);
+            let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
             this._tokenDecimal = await contract.methods.name().call();
 
             return this._tokenDecimal
@@ -330,7 +320,7 @@ export class DataPool {
                     "type": "function"
                 }
             ] as const;
-            let contract = new this._web3.eth.Contract(abiTotalSupply, this._contractAddress);
+            let contract = new this._web3.eth.Contract(abiTotalSupply, await this.contractAddress);
             let totalSupply = await contract.methods.totalSupply().call();
             this._tokenTotalSupply = Number(totalSupply) / 10**18
 
@@ -345,7 +335,7 @@ export class DataPool {
             }
 
             const chainId = await this._web3.eth.getChainId().then(value => { return Number(value) });
-            const resp = await ChainBaseAPI.getTotalHolders(chainId, this._contractAddress);
+            const resp = await ChainBaseAPI.getTotalHolders(chainId, await this.contractAddress);
             this._totalHolders = resp['count'];
 
             return this._totalHolders
@@ -359,7 +349,7 @@ export class DataPool {
             }
 
             const chainId = await this._web3.eth.getChainId().then(value => { return Number(value) });
-            const resp = await ChainBaseAPI.getTopHolders(chainId, this._contractAddress)
+            const resp = await ChainBaseAPI.getTopHolders(chainId, await this.contractAddress)
 
             let holderLimit = resp.data.length;
             let holdersBalance: any = {};
@@ -367,7 +357,7 @@ export class DataPool {
                 holderLimit = 8
             }
             for (let i = 0; i < holderLimit; i++) {
-                if (resp.data[i]['wallet_address'] === await this.deployer) {
+                if (resp.data[i]['wallet_address'] === await this.deployerAddress) {
                     let balance = resp.data[i]['original_amount'];
                     holdersBalance[resp.data[i]['wallet_address']] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) * 100).toFixed(2)}`;
                 } else if (resp.data[i]['wallet_address'] !== '0x000000000000000000000000000000000000dead') {
@@ -387,10 +377,10 @@ export class DataPool {
                 return this._initLp
             }
 
-            let LPinEth: any = await getInitLPbyPair(this._contractAddress, await this.deployer)
+            let LPinEth: any = await getInitLPbyPair(this._contractAddress, await this.deployerAddress)
             if (LPinEth === undefined) {
                 console.log('Get LP by Deployer Txns')
-                LPinEth = await getInitLPbyDeployer(await this.deployer)
+                LPinEth = await getInitLPbyDeployer(await this.deployerAddress)
             }
             this._initLp = LPinEth
 
@@ -398,13 +388,13 @@ export class DataPool {
         })();
     }
 
-    public totalTxns(pairAddress: string): Promise<number> {
+    public get totalTxns(): Promise<number> {
         return (async () => {
             if (this._totalTxns) {
                 return this._totalTxns
             }
 
-            const resp = await DexScreenerAPI.getDexData(pairAddress)
+            const resp = await DexScreenerAPI.getDexData(await this.pairAddress)
             let txns24h = resp['pair']['txns']['h24']
             let buyTxns = Number(txns24h['buys']);
             let sellTxns = Number(txns24h['sells']);
@@ -413,25 +403,25 @@ export class DataPool {
         })();
     }
 
-    public priceToken(pairAddress: string): Promise<number> {
+    public get priceToken(): Promise<number> {
         return (async () => {
             if (this._priceToken) {
                 return this._priceToken
             }
 
-            const resp = await DexScreenerAPI.getDexData(pairAddress)
+            const resp = await DexScreenerAPI.getDexData(await this.pairAddress)
             this._priceToken = Number(resp['pair']['priceUsd'])
             return this._priceToken
         })();
     }
 
-    public liveTime(pairAddress: string): Promise<string> {
+    public get liveTime(): Promise<string> {
         return (async () => {
             if (this._liveTime) {
                 return this._liveTime
             }
 
-            const resp = await DexScreenerAPI.getDexData(pairAddress)
+            const resp = await DexScreenerAPI.getDexData(await this.pairAddress)
             let pairCreatedAt = Number(resp['pair']['pairCreatedAt'])
             let currentTime = new Date();
             this._liveTime =  convertSeconds(((Number(currentTime) - pairCreatedAt) / 1000 / 60))
@@ -439,26 +429,77 @@ export class DataPool {
         })();
     }
 
-    public marketCapLock(priceToken: number, totalSupply: number, burnAmount: number   = 0): Promise<number> {
+    public get marketCapLock(): Promise<number> {
         return (async () => {
             if (this._marketCapLock) {
                 return this._marketCapLock
             }
 
-            return (priceToken * ((totalSupply - burnAmount) / 10**18))
+            let burnAmount = 0;
+            return (await this.priceToken * ((await this.tokenTotalSupply - burnAmount) / 10**18))
+        })();
+    }
+
+    public get deployerBalance(): Promise<number> {
+        return (async () => {
+            if (this._deployerBalance) {
+                return this._deployerBalance
+            }
+
+            const resp = await BaseScanAPI.getBalanceAddress(await this.deployerAddress);
+            this._deployerBalance = await transferGwei2Eth(resp.result)
+
+            return this._deployerBalance
+        })();
+    }
+
+    public get verified(): Promise<boolean> {
+        return (async () => {
+            if (this._isVerified) {
+                return this._isVerified
+            }
+
+            const resp = BaseScanAPI.getAbi(await this.contractAddress)
+            this._isVerified = await checkAbi(resp['result'])
+
+            return this._isVerified
+        })();
+    }
+
+    public get clog(): Promise<string> {
+        return (async () => {
+            if (this._clog) {
+                return this._clog
+            }
+
+            let clog = await getClog(await this.contractAddress);
+            this._clog = (Number(clog) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+            if (Number(this._clog) > 100) {
+                this._clog = 'SCAM'
+            }
+            return this._clog;
         })();
     }
 
     private async _fulFillTransactionData(): Promise<void> {
         const transaction = await this._web3.eth.getTransaction(this._transactionHash);
-        this._deployer = transaction?.from.toString();
+        this._deployerAddress = transaction?.from.toString();
         this._transactionInput = transaction?.input.toString();
     }
 
-    private async _fulfillInfoOM(): Promise<void> {
-        const inter = new ethers.Interface(OM_ABI);
+    private async _fulfillInfoLock(mode: string): Promise<void> {
+        var inter: any;
+        if (mode == 'OM'){
+            inter = new ethers.Interface(OM_ABI);
+        } else if (mode == 'TF') {
+            inter = new ethers.Interface(TF_ABI);
+        } else if (mode == 'UNCXsushi') {
+            inter = new ethers.Interface(UNCX_sushi_ABI);
+        } else if (mode == 'UNCXuniv2') {
+            inter = new ethers.Interface(UNCX_univ2_ABI);
+        }
         const value = ethers.parseEther("1.0");
-        this._infoOM = inter.parseTransaction({ data: this._transactionInput, value });
+        this._infoLock = inter.parseTransaction({ data: this._transactionInput, value });
     }
 
 }
