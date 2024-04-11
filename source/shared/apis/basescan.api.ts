@@ -55,12 +55,12 @@ export class BaseScanAPI {
         return resp.json();
     }
 
-    public static async getAbi(contractAddress: string) {
+    public static async getAbi(contractAddress: string): Promise<any> {
         const urlGetAbi = `https://api.basescan.org/api?module=contract&action=getabi&address=${contractAddress}&apikey=${process.env.API_BASESCAN_KEY}`; 
 
         const resp = await fetch(urlGetAbi);
 
-        return resp
+        return resp.json()
     }
 
     public static async getTxnbyAddress(currentBlock: number, address: string) {
@@ -83,8 +83,8 @@ export class BaseScanAPI {
         const urlGetInternalTxn = `https://api.basescan.org/api?module=account&action=txlistinternal&address=${address}&page=1&offset=50&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY}`
         
         const resp = await fetch(urlGetInternalTxn);
-        const respData = resp.json();
+        const respData = await resp.json();
 
-        return respData['result'][respData['result'].length - 1]['hash']
+        return respData?.result[respData?.result?.length - 1]?.hash
     }
 }

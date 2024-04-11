@@ -21,8 +21,9 @@ import {
     checkAbi,
     getClog
 } from "../../shared/helpers/utils"
+import { IDataPool } from "../../shared/type";
 
-export class DataPool {
+export class Univ2DataPool implements IDataPool {
 
     private _web3;
 
@@ -41,7 +42,7 @@ export class DataPool {
     private _tokenDecimal: number;
     private _tokenTotalSupply: number;
     private _totalHolders: number;
-    private _holderBalance: object;
+    private _holderBalance: {[index: string]: any};
     private _initLp: number;
     private _totalTxns: number;
     private _priceToken: number;
@@ -345,7 +346,7 @@ export class DataPool {
         })();
     }
 
-    public get topHolders(): Promise<object> {
+    public get topHolders(): Promise<{[index: string]: any}> {
         return (async () => {
             if (this._holderBalance) {
                 return this._holderBalance
@@ -482,7 +483,7 @@ export class DataPool {
                 return this._isVerified
             }
 
-            const resp = BaseScanAPI.getAbi(await this.contractAddress)
+            const resp = await BaseScanAPI.getAbi(await this.contractAddress)
             this._isVerified = await checkAbi(resp['result'])
 
             return this._isVerified

@@ -4,7 +4,7 @@ import { BaseScanAPI } from "../apis/basescan.api";
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-const web3 = new Web3(new Web3.providers.HttpProvider(`${process.env.ALCHEMY_ENDPOINT_BASE_DEV}`))
+const web3 = new Web3(new Web3.providers.HttpProvider(`${process.env.ALCHEMY_ENDPOINT_BASE}`))
 
 export const formatter = new Intl.NumberFormat('en-US', {
     style: 'currency',
@@ -245,6 +245,9 @@ async function getCAinTxns(txns: any) {
 export async function getPairAddress(contractAddress: string, deployerAddress: string) {
     const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
     let pairAddressUniV2 = await getPairUniV2(contractAddress);
+    if (!pairAddressUniV2) {
+        return;
+    }
     let firstITxnUniV2hash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressUniV2);
     let firstITxnUniV2 : any;
     if (firstITxnUniV2hash) {
@@ -252,6 +255,10 @@ export async function getPairAddress(contractAddress: string, deployerAddress: s
     }
 
     let pairAddressUniV3 = await getPairUniV3(contractAddress);
+    if (!pairAddressUniV3) {
+        return;
+    }
+    
     let firstITxnUniV3hash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressUniV3);
     let firstITxnUniV3 : any;
     if (firstITxnUniV3hash) {
@@ -259,6 +266,10 @@ export async function getPairAddress(contractAddress: string, deployerAddress: s
     }
 
     let pairAddressSushi = await getPairSushiV2(contractAddress);
+    if (!pairAddressSushi) {
+        return;
+    }
+
     let firstITxnSushihash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressSushi);
     let firstITxnSushi : any;
     if (firstITxnSushihash) {
@@ -266,6 +277,10 @@ export async function getPairAddress(contractAddress: string, deployerAddress: s
     }
 
     let pairAddressSB = await getPairSwapBasedv2(contractAddress);
+    if (!pairAddressSB) {
+        return;
+    }
+
     let firstITxnSBhash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressSB);
     let firstITxnSB : any;
     if (firstITxnSBhash) {

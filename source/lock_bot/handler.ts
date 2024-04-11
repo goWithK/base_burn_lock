@@ -1,14 +1,14 @@
 import Web3 from "web3";
 import { BaseScanAPI } from "../shared/apis/basescan.api";
 import { Message } from "./message";
-import { DataPool as DataPoolOM } from "./pool/OM.pool";
-import { DataPool as DataPoolTF } from "./pool/TF.pool";
-import { DataPool as DataPoolUniv2 } from "./pool/univ2.pool";
-import { DataPool as DataPoolUniv3 } from "./pool/univ3.pool";
+import { Univ2DataPool } from "./pool/univ2.pool";
+import { Univ3DataPool } from "./pool/univ3.pool";
 import { TimeHelper } from "../shared/helpers/time.helper";
 import { BotContext, IBotCommand } from "../shared/type";
 import { Bot } from "grammy";
 import { ParseModeFlavor } from "@grammyjs/parse-mode";
+import { OMDataPool } from "./pool/OM.pool";
+import { TFDataPool } from "./pool/TF.pool";
 
 
 export class LockBotHandler implements IBotCommand {
@@ -75,7 +75,7 @@ export class LockBotHandler implements IBotCommand {
         }
 
         const transactionHash: string = resp.result[0]?.transactionHash;
-        const dataPool = new DataPoolOM(transactionHash, 'OM');
+        const dataPool = new OMDataPool(transactionHash, 'OM');
         const message = new Message(dataPool, ctx);
 
         const msgContent = await message.getMsgContent();
@@ -107,7 +107,7 @@ export class LockBotHandler implements IBotCommand {
         }
 
         const transactionHash: string = resp.result[0]?.transactionHash;
-        const dataPool = new DataPoolTF(transactionHash, 'TF');
+        const dataPool = new TFDataPool(transactionHash, 'TF');
         const message = new Message(dataPool, ctx);
 
         const msgContent = await message.getMsgContent();
@@ -139,7 +139,7 @@ export class LockBotHandler implements IBotCommand {
         }
 
         const transactionHash: string = resp.result[0]?.transactionHash;
-        const dataPool = new DataPoolUniv2(transactionHash, 'UNCXsushi');
+        const dataPool = new Univ2DataPool(transactionHash, 'UNCXsushi');
         const message = new Message(dataPool, ctx);
 
         const msgContent = await message.getMsgContent();
@@ -171,7 +171,7 @@ export class LockBotHandler implements IBotCommand {
         }
 
         const transactionHash: string = resp.result[0]?.transactionHash;
-        const dataPool = new DataPoolUniv2(transactionHash, 'UNCXuniv2');
+        const dataPool = new Univ2DataPool(transactionHash, 'UNCXuniv2');
         const message = new Message(dataPool, ctx);
 
         const msgContent = await message.getMsgContent();
@@ -203,7 +203,7 @@ export class LockBotHandler implements IBotCommand {
         }
 
         const transactionHash: string = resp.result[0]?.transactionHash;
-        const dataPool = new DataPoolUniv3(transactionHash, resp);
+        const dataPool = new Univ3DataPool(transactionHash, resp);
         const message = new Message(dataPool, ctx);
 
         const msgContent = await message.getMsgContent();
