@@ -1,11 +1,11 @@
 import Web3 from "web3";
 import { BaseScanAPI } from "../shared/apis/basescan.api";
 import { Message } from "./message";
-import { DataPool } from "./pool";
 import { TimeHelper } from "../shared/helpers/time.helper";
 import { BotContext, IBotCommand } from "../shared/type";
 import { Bot } from "grammy";
 import { ParseModeFlavor } from "@grammyjs/parse-mode";
+import { OMDataPool } from "../lock_bot/pool/OM.pool";
 
 
 export class BurnBotHandler implements IBotCommand {
@@ -75,7 +75,7 @@ export class BurnBotHandler implements IBotCommand {
         const txData = await this._web3.eth.getTransaction(transactionHash);
         const txInput = txData['input'].toString();
         if (txInput.slice(0, 10) === '0xa9059cbb') {
-            const dataPool = new DataPool(transactionHash);
+            const dataPool = new OMDataPool(transactionHash);
             const message = new Message(dataPool, ctx);
 
             const msgContent = await message.getMsgContent();
