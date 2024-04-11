@@ -13,11 +13,11 @@ const runApp = async () => {
         let mode = process.argv.slice(2)[0]
         if (mode == 'lock') {
             const commandHandler = new LockBotHandler();
-            const bot = new TelegramBot(commandHandler, process.env.LOCK_BASE_BOT);
+            const bot = new TelegramBot(commandHandler, process.env.LOCK_BASE_BOT ? process.env.LOCK_BASE_BOT : '');
             bot.run();
         } else if (mode == 'burn') {
             const commandHandler = new BurnBotHandler();
-            const bot = new TelegramBot(commandHandler, process.env.BURN_BASE_BOT);
+            const bot = new TelegramBot(commandHandler, process.env.BURN_BASE_BOT ? process.env.BURN_BASE_BOT : '');
             bot.run();
         }
         

@@ -1,14 +1,14 @@
 // Used to build & send Telegram Message
-import { DataPool } from './pool/OM.pool';
 import { formatter } from '../shared/helpers/utils';
+import { IDataPool } from '../shared/type';
 
 export class Message {
 
 
-    private _dataPool: DataPool;
+    private _dataPool: IDataPool;
     private _ctx: any;
 
-    public constructor(dataPool: DataPool, ctx: any) {
+    public constructor(dataPool: IDataPool, ctx: any) {
         this._dataPool = dataPool;
         this._ctx = ctx
     }
@@ -46,12 +46,12 @@ export class Message {
             if (verified) { verified_msg = this._ctx.emoji`Verified: ${"check_mark_button"} \n` }
             let devBalance_msg = `Dev Balance: ${devBalance.toFixed(2)}ETH`
             
-            let holderAddress: any = Object.keys(topHolders);
+            let holderAddress: string[] = Object.keys(topHolders);
             let list_msg: any = [];
             let holderLimit = 5;
             if (holderLimit > holderAddress.length) { holderLimit = holderAddress.length }
             for (let i = 0; i < holderLimit; i++) {
-                list_msg.push(`<a href="https://basescan.org/address/${holderAddress[i]}">${topHolders[holderAddress[i]]}%</a>`)
+                list_msg.push(`<a href="https://basescan.org/address/${holderAddress[i]}">${topHolders[holderAddress[i] as string]}%</a>`)
             }
             let holder_msg = 'Holders: ';
             let tg_msg = title + ca_msg + lock_msg + mc_msg + initLp_msg + stats_msg + ca_balance_msg + devBalance_msg + verified_msg + renounced_msg + holder_msg + list_msg.join(' | ');

@@ -25,3 +25,30 @@ export interface IBotCommand {
 export enum BotType {
     Lock = 'lock_bot'
 }
+
+export interface IDataPool {
+    renounced: Promise<boolean>;
+    transactionInput: Promise<string>;
+    lockInfo: Promise<any>;
+    pairAddress: Promise<string>;
+    deployerAddress: Promise<string>;
+    exchange: Promise<string>;
+    contractAddress: Promise<string>;
+    lockPercent: Promise<number>;
+    lockDays: Promise<number>;
+    tokenName: Promise<string>;
+    tokenSymbol: Promise<string>;
+    tokenDecimal: Promise<number>;
+    tokenTotalSupply: Promise<number>;
+    totalHolders: Promise<number>;
+    topHolders: Promise<{[index: string]: any}>;
+    initialLp: Promise<number>;
+    totalTxns: Promise<number>;
+    priceToken: Promise<number>;
+    liquidity: Promise<number>;
+    liveTime: Promise<string>;
+    marketCapLock: Promise<number>;
+    deployerBalance: Promise<number>;
+    verified: Promise<boolean>;
+    clog: Promise<string>;
+}
