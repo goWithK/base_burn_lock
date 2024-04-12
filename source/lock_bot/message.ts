@@ -1,6 +1,7 @@
 // Used to build & send Telegram Message
 import { formatter } from '../shared/helpers/utils';
 import { IDataPool } from '../shared/type';
+import { emojiParser } from '@grammyjs/emoji';
 
 export class Message {
 
@@ -13,7 +14,7 @@ export class Message {
         this._ctx = ctx
     }
 
-    public async getMsgContent(): Promise<string> {
+    public async getMsgContent(bot: any): Promise<string> {
         const contractAddress = await this._dataPool.contractAddress;
         if (contractAddress) {
             const tokenName = await this._dataPool.tokenName;
