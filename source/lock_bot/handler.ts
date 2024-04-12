@@ -22,7 +22,7 @@ export class LockBotHandler implements IBotCommand {
     public start(bot: Bot<ParseModeFlavor<BotContext>>): void {
         bot.command('start', async (ctx: any) => {
             console.log('LOCK IS RUNNING')
-            console.log(typeof ctx);
+            // console.log(typeof ctx);
             const chatId = -4114916111;
 
             while (true) {
@@ -64,7 +64,7 @@ export class LockBotHandler implements IBotCommand {
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
         // const startblock = Number(currentBlock)-3;
-        const startblock = 12176231;
+        const startblock = 13018207;
 
         const resp = await BaseScanAPI.getLockOM(currentBlock, startblock);
 

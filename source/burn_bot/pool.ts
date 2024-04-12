@@ -65,10 +65,10 @@ export class DataPool {
             }
 
             this._isRenounced = false;
-
+            
             const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
             const resp = await BaseScanAPI.getTxnbyAddress(currentBlock, await this.deployerAddress);
-            let isLatest = false;
+            var isLatest = false;
 
             for (let i = 0; i < resp['result'].length; i++) {
                 if (!resp?.result[i]?.input || resp?.result[i]?.input == '') {
@@ -428,7 +428,7 @@ export class DataPool {
                 return this._isVerified
             }
 
-            const resp = BaseScanAPI.getAbi(await this.contractAddress)
+            const resp: any = BaseScanAPI.getAbi(await this.contractAddress)
             this._isVerified = await checkAbi(resp['result'])
 
             return this._isVerified
@@ -454,9 +454,11 @@ export class DataPool {
         const transaction = await this._web3.eth.getTransaction(this._transactionHash);
         this._deployerAddress = transaction?.from.toString();
         const txReceipt = await this._web3.eth.getTransactionReceipt(this._transactionHash);
-        this._pairAddress = txReceipt['logs'][0]['address'];
-        const amountLpBurnHex = txReceipt['logs'][0]['data'];
-        this._burnAmount = parseInt(String(amountLpBurnHex), 16);
+        if (txReceipt['logs'][0]){
+            this._pairAddress = txReceipt['logs'][0].address!;
+            const amountLpBurnHex = txReceipt['logs'][0].data!;
+            this._burnAmount = parseInt(String(amountLpBurnHex), 16);
+        }
     }
 
 }

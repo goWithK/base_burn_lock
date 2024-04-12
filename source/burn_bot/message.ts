@@ -1,14 +1,14 @@
 // Used to build & send Telegram Message
 import { formatter } from '../shared/helpers/utils';
-import { IDataPool } from '../shared/type';
+import { IDataPoolBurn } from '../shared/type';
 
 export class Message {
 
 
-    private _dataPool: IDataPool;
+    private _dataPool: IDataPoolBurn;
     private _ctx: any;
 
-    public constructor(dataPool: IDataPool, ctx: any) {
+    public constructor(dataPool: IDataPoolBurn, ctx: any) {
         this._dataPool = dataPool;
         this._ctx = ctx
     }
@@ -18,13 +18,8 @@ export class Message {
         if (contractAddress) {
             const tokenName = await this._dataPool.tokenName;
             const tokenSymbol = await this._dataPool.tokenSymbol;
-
-            // TODO: Ask about this fields
-            // const burnPercent = await this._dataPool.burnPercent;
-            // const marketCapBurn = await this._dataPool.marketCapBurn;
-            const burnPercent = 0;
-            const marketCapBurn = 0;
-
+            const burnPercent = await this._dataPool.burnPercent;
+            const marketCapBurn = await this._dataPool.marketCapBurn;
             const totalTxns = await this._dataPool.totalTxns;
             const totalHolders = await this._dataPool.totalHolders;
             const topHolders = await this._dataPool.topHolders;

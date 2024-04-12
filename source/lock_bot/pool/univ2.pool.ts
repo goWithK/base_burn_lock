@@ -77,7 +77,7 @@ export class Univ2DataPool implements IDataPool {
 
             const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
             const resp = await BaseScanAPI.getTxnbyAddress(currentBlock, await this.deployerAddress);
-            let isLatest = false;
+            var isLatest = false;
 
             for (let i = 0; i < resp['result'].length; i++) {
                 if (!resp?.result[i]?.input || resp?.result[i]?.input == '') {

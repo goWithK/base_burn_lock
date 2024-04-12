@@ -5,7 +5,7 @@ import { TimeHelper } from "../shared/helpers/time.helper";
 import { BotContext, IBotCommand } from "../shared/type";
 import { Bot } from "grammy";
 import { ParseModeFlavor } from "@grammyjs/parse-mode";
-import { OMDataPool } from "../lock_bot/pool/OM.pool";
+import { DataPool } from "../burn_bot/pool";
 
 
 export class BurnBotHandler implements IBotCommand {
@@ -19,7 +19,7 @@ export class BurnBotHandler implements IBotCommand {
     public start(bot: Bot<ParseModeFlavor<BotContext>>): void {
         bot.command('start', async (ctx: any) => {
             console.log('BURN IS RUNNING')
-            console.log(typeof ctx);
+            // console.log(typeof ctx);
             const chatId = -4114916111;
             // const tgMsg = ctx.emoji`${"locked"} <b>LP LOCK</b> | Test | Test \n\n`
 
@@ -63,7 +63,7 @@ export class BurnBotHandler implements IBotCommand {
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
         // const startblock = Number(currentBlock)-3;
-        const startblock = 12176231;
+        const startblock = 12629658;
 
         const resp = await BaseScanAPI.getBurnEvent(currentBlock, startblock);
 
@@ -75,7 +75,7 @@ export class BurnBotHandler implements IBotCommand {
         const txData = await this._web3.eth.getTransaction(transactionHash);
         const txInput = txData['input'].toString();
         if (txInput.slice(0, 10) === '0xa9059cbb') {
-            const dataPool = new OMDataPool(transactionHash);
+            const dataPool = new DataPool(transactionHash);
             const message = new Message(dataPool, ctx);
 
             const msgContent = await message.getMsgContent();

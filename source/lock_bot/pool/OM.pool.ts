@@ -77,7 +77,7 @@ export class OMDataPool implements IDataPool{
 
             const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
             const resp = await BaseScanAPI.getTxnbyAddress(currentBlock, await this.deployerAddress);
-            let isLatest = false;
+            var isLatest = false;
 
             for (let i = 0; i < resp['result'].length; i++) {
                 if (!resp?.result[i]?.input || resp?.result[i]?.input == '') {
@@ -362,10 +362,10 @@ export class OMDataPool implements IDataPool{
             for (let i = 0; i < holderLimit; i++) {
                 if (resp.data[i]['wallet_address'] === await this.deployerAddress) {
                     let balance = resp.data[i]['original_amount'];
-                    holdersBalance[resp.data[i]['wallet_address']] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) * 100).toFixed(2)}`;
+                    holdersBalance[resp.data[i]['wallet_address']] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2)}`;
                 } else if (resp.data[i]['wallet_address'] !== '0x000000000000000000000000000000000000dead') {
                     let balance = resp.data[i]['original_amount'];
-                    holdersBalance[resp.data[i]['wallet_address']] = (Number(balance) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+                    holdersBalance[resp.data[i]['wallet_address']] = (Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2);
                 }
             }
             this._holderBalance = holdersBalance
@@ -417,6 +417,7 @@ export class OMDataPool implements IDataPool{
             if (!this._dexData) {
                 this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
             }
+            
             this._priceToken = Number(this._dexData['pair']['priceUsd'])
             return this._priceToken
         })();
@@ -459,7 +460,7 @@ export class OMDataPool implements IDataPool{
             }
 
             let burnAmount = 0;
-            return (await this.priceToken * ((await this.tokenTotalSupply - burnAmount) / 10**18))
+            return (await this.priceToken * ((await this.tokenTotalSupply - burnAmount)))
         })();
     }
 
