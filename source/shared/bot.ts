@@ -82,6 +82,8 @@ class TelegramBot {
         } else {
             console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e)
         }
+
+        process.kill(process.pid, 'SIGTERM')
     }
 
     public isInited(): boolean {
@@ -91,7 +93,12 @@ class TelegramBot {
     public run(): void {
         if (!this.isInited()) {
             console.log('BOT INITIATED!!!');
-            run(this._bot);
+            const runner = run(this._bot);
+
+            const stopRunner = () => runner.isRunning() && runner.stop();
+
+            process.once("SIGINT", stopRunner);
+            process.once("SIGTERM", stopRunner);
         }
     }
 }
