@@ -69,13 +69,13 @@ export class DataPool {
                     continue;
                 }
                 
-                if (resp['result'][i]['input'].slice(0, 10) === '0x60806040'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x61016060'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x60a06040'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x60c06040'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x6b204fce'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x6b033b2e'
-                    || resp['result'][i]['input'].slice(0, 10) === '0x6bdef376'
+                if (resp?.result[i]?.input.slice(0, 10) === '0x60806040'
+                    || resp?.result[i]?.input.slice(0, 10) === '0x61016060'
+                    || resp?.result[i]?.input.slice(0, 10) === '0x60a06040'
+                    || resp?.result[i]?.input.slice(0, 10) === '0x60c06040'
+                    || resp?.result[i]?.input.slice(0, 10) === '0x6b204fce'
+                    || resp?.result[i]?.input.slice(0, 10) === '0x6b033b2e'
+                    || resp?.result[i]?.input.slice(0, 10) === '0x6bdef376'
                     && isLatest === false
                 ) {
                     const createTxn = resp['result'][i];
@@ -88,20 +88,20 @@ export class DataPool {
                     break;
 
                 } 
-                else if (resp['result'][i]['input'].slice(0, 10) === '0xf346c18d') {
+                else if (resp?.result[i]?.input.slice(0, 10) === '0xf346c18d') {
                     const createTxn = resp['result'][i];
                     const getCa = (keyName: keyof typeof createTxn) => {
                         return createTxn[keyName]
                     };
 
                     const logs = await this._web3.eth.getTransactionReceipt(getCa('hash'))
-                    const caHex = logs['logs'][0]['topics']
+                    const caHex = logs?.logs[0]?.topics;
                     if (caHex) {
                         this._contractAddress = '0x' + `${caHex[2].slice(26, caHex[2].length)}`;
                         break;
                     }
                 } 
-                else if (resp['result'][i]['input'].slice(0, 10) === '0x715018a6') {
+                else if (resp?.result[i]?.input.slice(0, 10) === '0x715018a6') {
                     this._isCaRenounced = true;
                 }
             }
@@ -154,7 +154,7 @@ export class DataPool {
             }
 
             const infoOM = await this.lockInfoOM;
-            this._pairAddressOM = infoOM['args'][0]
+            this._pairAddressOM = infoOM?.args[0]
 
             return this._pairAddressOM
         })();
@@ -171,7 +171,7 @@ export class DataPool {
 
             const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
             const resp = await BaseScanAPI.getLpAmount(currentBlock, await this.pairAddressOM ,await this.deployer);
-            const totalLp = Number(resp['result'][0]['value'])
+            const totalLp = Number(resp?.result[0]?.value)
             this._lockPercentOM = Number(lockAmount) / Number(totalLp) * 100;
 
             return this._lockPercentOM
@@ -196,7 +196,6 @@ export class DataPool {
         })();
     }
 
-    //need advice for this function due to contract address
     public get contractAddressOM(): Promise<string> {
         return (async () => {
             if (this._contractAddress) {

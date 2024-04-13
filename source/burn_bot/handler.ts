@@ -5,7 +5,7 @@ import { TimeHelper } from "../shared/helpers/time.helper";
 import { BotContext, IBotCommand } from "../shared/type";
 import { Bot } from "grammy";
 import { ParseModeFlavor } from "@grammyjs/parse-mode";
-import { OMDataPool } from "../lock_bot/pool/OM.pool";
+import { DataPool } from "../burn_bot/pool";
 
 
 export class BurnBotHandler implements IBotCommand {
@@ -28,7 +28,7 @@ export class BurnBotHandler implements IBotCommand {
 
         while (true) {
             try {
-                await this._startSendingMessagesOM(true, chatId, ctx, bot);
+                await this._startSendingMessages(true, chatId, ctx, bot);
                 await TimeHelper.delay(2.5);
             }
             catch (e) {
@@ -36,6 +36,11 @@ export class BurnBotHandler implements IBotCommand {
                 continue
             }
         }
+
+        // for (let i=0; i<1; i++)
+        // {
+        //     await this._startSendingMessages(true, chatId, ctx, bot);
+        // }
     }
 
     public registerHelpCommand(bot: Bot<ParseModeFlavor<BotContext>>): void {
@@ -56,14 +61,15 @@ export class BurnBotHandler implements IBotCommand {
         });
     }
 
-    private async _startSendingMessagesOM(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
+    private async _startSendingMessages(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
         if (!trueOrFalse) {
             return;
         }
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
         // const startblock = Number(currentBlock)-3;
-        const startblock = 12176231;
+        // const startblock = 12629658;
+        const startblock = 12906779;
 
         const resp = await BaseScanAPI.getBurnEvent(currentBlock, startblock);
 

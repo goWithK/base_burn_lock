@@ -18,7 +18,7 @@ export const convertSeconds = (seconds: number): string => {
     return `${hours}h : ${minutes}m`
 }
 
-async function getPairSushiV2(contractAddress: string) {
+export async function getPairSushiV2(contractAddress: string) {
     //sushi V3: 0xc35DADB65012eC5796536bD9864eD8773aBc74C4 - TODO
     const abiGetPair = [
         {
@@ -46,8 +46,15 @@ async function getPairSushiV2(contractAddress: string) {
             "type": "function"
         }
     ] as const;
-    let contract = new web3.eth.Contract(abiGetPair, '0x71524B4f93c58fcbF659783284E38825f0622859');
-    let pairAddress = await contract.methods.getPair(contractAddress, '0x4200000000000000000000000000000000000006').call();
+    var pairAddress: string;
+
+    try {
+        let contract = new web3.eth.Contract(abiGetPair, '0x71524B4f93c58fcbF659783284E38825f0622859');
+        pairAddress = await contract.methods.getPair(contractAddress, '0x4200000000000000000000000000000000000006').call();
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getPairSushiV2] Error while getting pair address')
+    }
 
     if (pairAddress === '0x0000000000000000000000000000000000000000') {
         return undefined
@@ -56,7 +63,7 @@ async function getPairSushiV2(contractAddress: string) {
     }
 }
 
-async function getPairUniV3(contractAddress: string) {
+export async function getPairUniV3(contractAddress: string) {
     const abiGetPair = [
         {
             "inputs": [
@@ -88,8 +95,15 @@ async function getPairUniV3(contractAddress: string) {
             "type": "function"
         }
     ] as const;
-    let contract = new web3.eth.Contract(abiGetPair, '0x33128a8fC17869897dcE68Ed026d694621f6FDfD');
-    let pairAddress = await contract.methods.getPool(contractAddress, '0x4200000000000000000000000000000000000006', 100).call();
+    var pairAddress: string;
+
+    try {
+        let contract = new web3.eth.Contract(abiGetPair, '0x33128a8fC17869897dcE68Ed026d694621f6FDfD');
+        pairAddress = await contract.methods.getPool(contractAddress, '0x4200000000000000000000000000000000000006', 100).call();
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getPairUniV3] Error while getting pair address')
+    }
     
     if (pairAddress === '0x0000000000000000000000000000000000000000') {
         return undefined
@@ -98,7 +112,7 @@ async function getPairUniV3(contractAddress: string) {
     }
 }
 
-async function getPairUniV2(contractAddress: string) {
+export async function getPairUniV2(contractAddress: string) {
     const abiGetPair = [
         {
             "constant": true,
@@ -127,8 +141,16 @@ async function getPairUniV2(contractAddress: string) {
             "type": "function"
         }
     ] as const;
-    let contract = new web3.eth.Contract(abiGetPair, '0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6');
-    let pairAddress = await contract.methods.getPair(contractAddress, '0x4200000000000000000000000000000000000006').call();
+    var pairAddress: string;
+
+    try {
+        let contract = new web3.eth.Contract(abiGetPair, '0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6');
+        pairAddress = await contract.methods.getPair(contractAddress, '0x4200000000000000000000000000000000000006').call();
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getPairUniV2] Error while getting pair address')
+    }
+    
 
     if (pairAddress === '0x0000000000000000000000000000000000000000') {
         return undefined
@@ -137,7 +159,7 @@ async function getPairUniV2(contractAddress: string) {
     }
 }
 
-async function getPairSwapBasedv2(contractAddress: string) {
+export async function getPairSwapBasedv2(contractAddress: string) {
     const abiGetPair = [
         {
             "constant": true,
@@ -166,8 +188,15 @@ async function getPairSwapBasedv2(contractAddress: string) {
             "type": "function"
         }
     ] as const;
-    let contract = new web3.eth.Contract(abiGetPair, '0x04C9f118d21e8B767D2e50C946f0cC9F6C367300');
-    let pairAddress = await contract.methods.getPair(contractAddress, '0x4200000000000000000000000000000000000006').call();
+    var pairAddress
+
+    try {
+        let contract = new web3.eth.Contract(abiGetPair, '0x04C9f118d21e8B767D2e50C946f0cC9F6C367300');
+        pairAddress = await contract.methods.getPair(contractAddress, '0x4200000000000000000000000000000000000006').call();
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getPairSwapBasedv2] Error while getting pair address')
+    }
 
     if (pairAddress === '0x0000000000000000000000000000000000000000') {
         return undefined
@@ -176,23 +205,29 @@ async function getPairSwapBasedv2(contractAddress: string) {
     }
 }
 
-async function getFirstReceiptPair(pairAddress: any) {
-    const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-    const txHash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddress);
-    const txReceipt = await web3.eth.getTransactionReceipt(txHash);
+export async function getFirstReceiptPair(pairAddress: any) {
+    var txReceipt: any;
+    try {
+        const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
+        const txHash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddress);
+        txReceipt = await web3.eth.getTransactionReceipt(txHash);
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getFirstReceiptPair] Error while getting first internal txn')
+    }
     
-    return txReceipt['logs']
+    return txReceipt?.logs
 }
 
 async function filterAddLiquidityTxn(txns: any) {
     let isLatest = false;
     let initLp: any = [];
-    for (let i = 0; i < txns['result'].length; i++) {
-        if (txns['result'][i]['input']) {
-            if (txns['result'][i]['input'].slice(0, 10) === '0xf305d719'
-                || txns['result'][i]['input'].slice(0, 10) === '0xe8e33700'
-                || txns['result'][i]['input'].slice(0, 10) === '0x51c6590a'
-                || txns['result'][i]['input'].slice(0, 10) === '0xac9650d8'
+    for (let i = 0; i < txns?.result.length; i++) {
+        if (txns?.result[i]?.input) {
+            if (txns?.result[i]?.input.slice(0, 10) === '0xf305d719'
+                || txns?.result[i]?.input.slice(0, 10) === '0xe8e33700'
+                || txns?.result[i]?.input.slice(0, 10) === '0x51c6590a'
+                || txns?.result[i]?.input.slice(0, 10) === '0xac9650d8'
                 && isLatest === false) {
                 const createTxn = txns['result'][i];
                 const getCa = (keyName: keyof typeof createTxn) => {
@@ -210,15 +245,15 @@ async function filterAddLiquidityTxn(txns: any) {
 async function getCAinTxns(txns: any) {
     var isLatest =  false;
     const createCAMethods = ['0x60806040', '0x61016060', '0x60a06040', '0x60c06040', '0x6b204fce', '0x6b033b2e', '0x6bdef376']
-    for (let i = 0; i < txns['result'].length; i++) {
-        if (txns['result'][i]['input']) {
-            if (txns['result'][i]['input'].slice(0, 10) === '0x60806040'
-                || txns['result'][i]['input'].slice(0, 10) === '0x61016060'
-                || txns['result'][i]['input'].slice(0, 10) === '0x60a06040'
-                || txns['result'][i]['input'].slice(0, 10) === '0x60c06040'
-                || txns['result'][i]['input'].slice(0, 10) === '0x6b204fce'
-                || txns['result'][i]['input'].slice(0, 10) === '0x6b033b2e'
-                || txns['result'][i]['input'].slice(0, 10) === '0x6bdef376'
+    for (let i = 0; i < txns?.result.length; i++) {
+        if (txns?.result[i]?.input) {
+            if (txns?.result[i]?.input.slice(0, 10) === '0x60806040'
+                || txns?.result[i]?.input.slice(0, 10) === '0x61016060'
+                || txns?.result[i]?.input.slice(0, 10) === '0x60a06040'
+                || txns?.result[i]?.input.slice(0, 10) === '0x60c06040'
+                || txns?.result[i]?.input.slice(0, 10) === '0x6b204fce'
+                || txns?.result[i]?.input.slice(0, 10) === '0x6b033b2e'
+                || txns?.result[i]?.input.slice(0, 10) === '0x6bdef376'
                 && isLatest === false) {
                 const createTxn = txns['result'][i];
                 const getCa = (keyName: keyof typeof createTxn) => {
@@ -226,7 +261,7 @@ async function getCAinTxns(txns: any) {
                 };
                 isLatest = true;
                 return getCa('contractAddress')
-            } else if (txns['result'][i]['input'].slice(0, 10) === '0xf346c18d') {
+            } else if (txns?.result[i]?.input.slice(0, 10) === '0xf346c18d') {
                 const createTxn = txns['result'][i];
                 const getCa = (keyName: keyof typeof createTxn) => {
                     return createTxn[keyName]
@@ -243,69 +278,91 @@ async function getCAinTxns(txns: any) {
 }
 
 export async function getPairAddress(contractAddress: string, deployerAddress: string) {
-    const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-    let pairAddressUniV2 = await getPairUniV2(contractAddress);
-    if (!pairAddressUniV2) {
-        return;
+    var currentBlock: number;
+    var firstITxnUniV2 : any;
+    var firstITxnUniV3 : any;
+    var firstITxnSushi : any;
+    var firstITxnSB : any;
+
+    try {
+        currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
+    } catch(e) {
+        throw Error('[utils.getPairAddress] Cannot get current block')
     }
-    let firstITxnUniV2hash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressUniV2);
-    let firstITxnUniV2 : any;
-    if (firstITxnUniV2hash) {
-        firstITxnUniV2 = await web3.eth.getTransaction(firstITxnUniV2hash);
+    
+    let pairAddressUniV2 = await getPairUniV2(contractAddress);
+
+    try {
+        if (pairAddressUniV2) {
+            let firstITxnUniV2hash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressUniV2);
+            if (firstITxnUniV2hash) {
+                firstITxnUniV2 = await web3.eth.getTransaction(firstITxnUniV2hash);
+            }
+        }
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getPairAddress] Cannot get first internal txn uniV2')
     }
 
     let pairAddressUniV3 = await getPairUniV3(contractAddress);
-    if (!pairAddressUniV3) {
-        return;
-    }
     
-    let firstITxnUniV3hash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressUniV3);
-    let firstITxnUniV3 : any;
-    if (firstITxnUniV3hash) {
-        firstITxnUniV3 = await web3.eth.getTransaction(firstITxnUniV3hash);
+    try {
+        if (pairAddressUniV3) {
+            let firstITxnUniV3hash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressUniV3);
+            if (firstITxnUniV3hash) {
+                firstITxnUniV3 = await web3.eth.getTransaction(firstITxnUniV3hash);
+            }
+        }
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getPairAddress] Cannot get first internal txn uniV3')
     }
 
     let pairAddressSushi = await getPairSushiV2(contractAddress);
-    if (!pairAddressSushi) {
-        return;
-    }
-
-    let firstITxnSushihash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressSushi);
-    let firstITxnSushi : any;
-    if (firstITxnSushihash) {
-        firstITxnSushi = await web3.eth.getTransaction(firstITxnSushihash);
+    try {
+        if (pairAddressSushi) {
+            let firstITxnSushihash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressSushi);
+            if (firstITxnSushihash) {
+                firstITxnSushi = await web3.eth.getTransaction(firstITxnSushihash);
+            }
+        }
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getPairAddress] Cannot get first internal txn sushi')
     }
 
     let pairAddressSB = await getPairSwapBasedv2(contractAddress);
-    if (!pairAddressSB) {
-        return;
-    }
-
-    let firstITxnSBhash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressSB);
-    let firstITxnSB : any;
-    if (firstITxnSBhash) {
-        firstITxnSB = await web3.eth.getTransaction(firstITxnSBhash);
+    try {
+        if (pairAddressSB) {
+            let firstITxnSBhash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressSB);
+            if (firstITxnSBhash) {
+                firstITxnSB = await web3.eth.getTransaction(firstITxnSBhash);
+            }
+        }
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getPairAddress] Cannot get first internal txn Swap based')
     }
 
     if (firstITxnUniV2) {
         let deployerPair = firstITxnUniV2['from'];
         if (deployerPair === deployerAddress) {
             return [pairAddressUniV2, 'UniSwapV2']
-        } 
+        }
     }
-    if (firstITxnUniV3) {
+    else if (firstITxnUniV3) {
         let deployerPair = firstITxnUniV3['from'];
         if (deployerPair === deployerAddress) {
             return [pairAddressUniV3, 'UniSwapV3']
         } 
     } 
-    if (firstITxnSushi) {
+    else if (firstITxnSushi) {
         let deployerPair = firstITxnSushi['from'];
         if (deployerPair === deployerAddress) {
             return [pairAddressSushi, 'SushiSwapV2']
         } 
     }
-    if (firstITxnSB) {
+    else if (firstITxnSB) {
         let deployerPair = firstITxnSB['from'];
         if (deployerPair === deployerAddress) {
             return [pairAddressSB, 'SwapBasedV2']
@@ -323,12 +380,12 @@ export async function getInitLPbyPair(contractAddress: string, deployerAddress: 
             let txnLogs = await getFirstReceiptPair(pairAddress);
 
             for (let i=0; i < txnLogs.length; i++) {
-                let topics: any = txnLogs[i]['topics'];
+                let topics: any = txnLogs[i]?.topics;
                 if (topics[0] === '0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c'
                     && topics[1] === '0x000000000000000000000000aaa3b1f1bd7bcc97fd1917c18ade665c5d31f066'
                     || topics[1] === '0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24')
                 {
-                    return (parseInt(String(txnLogs[i]['data']), 16)/10**18).toFixed(2)
+                    return (parseInt(String(txnLogs[i]?.data), 16)/10**18).toFixed(2)
                 } 
             }
         } 
@@ -336,11 +393,11 @@ export async function getInitLPbyPair(contractAddress: string, deployerAddress: 
             let txnLogs = await getFirstReceiptPair(pairAddress);
 
             for (let i=0; i < txnLogs.length; i++) {
-                let topics: any = txnLogs[i]['topics'];
+                let topics: any = txnLogs[i]?.topics;
                 if (topics[0] === '0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c'
                     && topics[1] === '0x0000000000000000000000004752ba5dbc23f44d87826276bf6fd6b1c372ad24')
                 {
-                    return (parseInt(String(txnLogs[i]['data']), 16)/10**18).toFixed(2)
+                    return (parseInt(String(txnLogs[i]?.data), 16)/10**18).toFixed(2)
                 }
             }
         } 
@@ -348,11 +405,11 @@ export async function getInitLPbyPair(contractAddress: string, deployerAddress: 
             let txnLogs = await getFirstReceiptPair(pairAddress);
 
             for (let i=0; i < txnLogs.length; i++) {
-                let topics: any = txnLogs[i]['topics'];
+                let topics: any = txnLogs[i]?.topics;
                 if (topics[0] === '0xe1fffcc4923d04b559f4d29a8bfc6cda04eb5b0d3c460751c2402c5c5cc9109c'
                     && topics[1] === '0x0000000000000000000000006bded42c6da8fbf0d2ba55b2fa120c5e0c8d7891')
                 {
-                    return (parseInt(String(txnLogs[i]['data']), 16)/10**18).toFixed(2)
+                    return (parseInt(String(txnLogs[i]?.data), 16)/10**18).toFixed(2)
                 }  
             }
         }
@@ -360,8 +417,15 @@ export async function getInitLPbyPair(contractAddress: string, deployerAddress: 
 }
 
 export async function getInitLPbyDeployer(deployerAddress: string) {
-    const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-    const resp = await BaseScanAPI.getTxnbyAddress(currentBlock, deployerAddress);
+    var resp: any;
+    try {
+        const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
+        resp = await BaseScanAPI.getTxnbyAddress(currentBlock, deployerAddress);
+    } catch (e) {
+        console.error(e)
+        throw Error('[utils.getInitLPbyDeployer] Cannot get txn by address')
+    }
+    
     let initLp = await filterAddLiquidityTxn(resp);
 
     return initLp
@@ -400,9 +464,17 @@ export async function getCAbyPair(pairAddress: string){
             "type": "function"
         }
     ] as const;
-    let contract = new web3.eth.Contract(abi, pairAddress);
-    const token0 = await contract.methods.token0().call();
-    const token1 = await contract.methods.token1().call();
+    var token0: string;
+    var token1: string;
+
+    try {
+        let contract = new web3.eth.Contract(abi, pairAddress);
+        token0 = await contract.methods.token0().call();
+        token1 = await contract.methods.token1().call();
+    } catch(e) {
+        console.error(e)
+        throw Error(`[utils.getCAbyPair] Cannot get CA from pair address ${pairAddress}`)
+    }
 
     if (token0 != '0x4200000000000000000000000000000000000006') {
         return token0
@@ -429,8 +501,15 @@ export async function getExchange(pairAddress: string){
             "type": "function"
         }
     ] as const;
-    let contract = new web3.eth.Contract(abi, pairAddress);
-    const symbol = await contract.methods.symbol().call();
+    var symbol: string;
+
+    try {
+        let contract = new web3.eth.Contract(abi, pairAddress);
+        symbol = await contract.methods.symbol().call();
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getExchange] Cannot get symbol from pair address')
+    } 
 
     return symbol
 }
@@ -451,8 +530,16 @@ export async function checkFactoryV3(pairAddress: string) {
             "type": "function"
         }
     ] as const;
-    let contract = new web3.eth.Contract(abi, pairAddress);
-    const factory = await contract.methods.factory().call();
+    var factory: string;
+
+    try{
+        let contract = new web3.eth.Contract(abi, pairAddress);
+        factory = await contract.methods.factory().call();
+    } catch(e) {
+        console.error(e)
+        throw Error(`[utils.checkFactoryV3] Error while getting factory address of ${pairAddress}`)
+    }
+
     if (factory == '0x33128a8fC17869897dcE68Ed026d694621f6FDfD') {
         return true
     } else {
@@ -539,22 +626,42 @@ export async function getInfobyLockId(lockId: number) {
             "type": "function"
         }
     ] as const;
-    let contract = new web3.eth.Contract(abi, '0x231278eDd38B00B07fBd52120CEf685B9BaEBCC1');
-    const lockData = await contract.methods.getLock(lockId).call();
+    var lockData: any;
+
+    try {
+        let contract = new web3.eth.Contract(abi, '0x231278eDd38B00B07fBd52120CEf685B9BaEBCC1');
+        lockData = await contract.methods.getLock(lockId).call();
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getInfobyLockId] Cannot get lock data from UNCX uniV3')
+    }
 
     return lockData
 }
 
 export async function getCAbyDeployer(deployerAddress: string) {
-    const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
-    let txns = await BaseScanAPI.getTxnbyAddress(currentBlock, deployerAddress);
+    var txns: any;
+    try {
+        const currentBlock = await web3.eth.getBlockNumber().then(value => { return Number(value) });
+        txns = await BaseScanAPI.getTxnbyAddress(currentBlock, deployerAddress);
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.getCAbyDeployer] Cannot get txns from deployer address')
+    }
     let contractAddress = await getCAinTxns(txns);
 
     return contractAddress
 }
 
 export async function transferGwei2Eth(gwei: number) {
-    const ethBalance = web3.utils.fromWei(gwei, 'ether');
+    var ethBalance: any;
+    try {
+        ethBalance = web3.utils.fromWei(gwei, 'ether');
+    } catch(e) {
+        console.error(e)
+        throw Error('[utils.transferGwei2Eth] Cannot convert gwei to eth')
+    }
+    
     return Number(ethBalance)
 }
 
@@ -590,8 +697,15 @@ export async function getClog(contractAddress: string) {
             "type": "function"
         }
     ] as const;
-    let contract = new web3.eth.Contract(abiBalanceof, contractAddress);
-    let clog = await contract.methods.balanceOf(contractAddress).call();
+    var clog: number;
+
+    try{
+        let contract = new web3.eth.Contract(abiBalanceof, contractAddress);
+        clog = await contract.methods.balanceOf(contractAddress).call();
+    } catch (e) {
+        console.error(e)
+        throw Error(`[utils.getClog] Cannot get Clog of contract ${contractAddress}`)
+    }
 
     return clog
 }

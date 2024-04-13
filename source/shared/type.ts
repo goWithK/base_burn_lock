@@ -54,3 +54,27 @@ export interface IDataPool {
     verified: Promise<boolean>;
     clog: Promise<string>;
 }
+
+export interface IDataPoolBurn {
+    renounced: Promise<boolean>;
+    pairAddress: Promise<string>;
+    deployerAddress: Promise<string>;
+    exchange: Promise<string>;
+    contractAddress: Promise<string>;
+    tokenName: Promise<string>;
+    tokenSymbol: Promise<string>;
+    tokenDecimal: Promise<number>;
+    tokenTotalSupply: Promise<number>;
+    totalHolders: Promise<number>;
+    topHolders: Promise<{[index: string]: any}>;
+    initialLp: Promise<number>;
+    totalTxns: Promise<number>;
+    priceToken: Promise<number>;
+    liquidity: Promise<number>;
+    liveTime: Promise<string>;
+    deployerBalance: Promise<number>;
+    verified: Promise<boolean>;
+    clog: Promise<string>;
+    marketCapBurn: Promise<number>;
+    burnPercent: Promise<number>;
+}

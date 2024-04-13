@@ -15,7 +15,11 @@ import {
     getCAbyDeployer,
     transferGwei2Eth,
     checkAbi,
-    getClog
+    getClog,
+    getPairSwapBasedv2,
+    getPairSushiV2,
+    getPairUniV2, 
+    getPairUniV3
 } from "../shared/helpers/utils"
 
 export class DataPool {
@@ -65,17 +69,23 @@ export class DataPool {
             }
 
             this._isRenounced = false;
+            var resp: any;
 
-            const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-            const resp = await BaseScanAPI.getTxnbyAddress(currentBlock, await this.deployerAddress);
-            let isLatest = false;
-
-            for (let i = 0; i < resp['result'].length; i++) {
+            try {
+                const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
+                resp = await BaseScanAPI.getTxnbyAddress(currentBlock, await this.deployerAddress);
+            } catch(e) {
+                console.error(e)
+                throw Error(`[pool.renounced] Error when get transaction by address: ${await this.deployerAddress}`)
+            }
+            
+            var isLatest = false;
+            for (let i = 0; i < resp?.result.length; i++) {
                 if (!resp?.result[i]?.input || resp?.result[i]?.input == '') {
                     continue;
                 }
                 
-                if (resp['result'][i]['input'].slice(0, 10) === '0x715018a6') {
+                if (resp?.result[i]?.input.slice(0, 10) === '0x715018a6') {
                     this._isRenounced = true;
                     isLatest = true;
                 }
@@ -154,10 +164,16 @@ export class DataPool {
             }
 
             await this._fulFillTransactionData();
-
-            const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-            const resp = await BaseScanAPI.getLpAmount(currentBlock, await this.pairAddress ,await this.deployerAddress);
-            const totalLp = Number(resp['result'][0]['value'])
+            var resp: any;
+            try{
+                const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
+                resp = await BaseScanAPI.getLpAmount(currentBlock, await this.pairAddress ,await this.deployerAddress);
+            } catch(e) {
+                console.error(e)
+                throw Error(`[pool.burnPercent] Cannot get LP amount of ${await this.pairAddress}`)
+            }
+            
+            const totalLp = Number(resp?.result[0]?.value)
             this._burnPercent = Number(this._burnAmount) / Number(totalLp) * 100;
 
             return this._burnPercent
@@ -185,8 +201,13 @@ export class DataPool {
                     "type": "function"
                 }
             ] as const;
-            let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
-            this._tokenName = await contract.methods.name().call();
+            try {
+                let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
+                this._tokenName = await contract.methods.name().call();
+            } catch(e) {
+                console.error(e)
+                throw Error(`[pool.tokenName] Cannot get name of token: ${await this.contractAddress}`)
+            }
 
             return this._tokenName
         })();
@@ -213,8 +234,13 @@ export class DataPool {
                     "type": "function"
                 }
             ] as const;
-            let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
-            this._tokenSymbol = await contract.methods.symbol().call();
+            try{
+                let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
+                this._tokenSymbol = await contract.methods.symbol().call();
+            } catch(e) {
+                console.error(e)
+                throw Error(`[pool.tokenSymbol] Cannot get symbol of token: ${await this.contractAddress}`)
+            }
 
             return this._tokenSymbol
         })();
@@ -241,8 +267,13 @@ export class DataPool {
                     "type": "function"
                 }
             ] as const;
-            let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
-            this._tokenDecimal = await contract.methods.name().call();
+            try{
+                let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
+                this._tokenDecimal = await contract.methods.decimals().call();
+            } catch(e) {
+                console.error(e)
+                throw Error(`[pool.tokenDecimal] Cannot get decimals of token: ${await this.contractAddress}`)
+            }
 
             return this._tokenDecimal
         })();
@@ -269,8 +300,15 @@ export class DataPool {
                     "type": "function"
                 }
             ] as const;
-            let contract = new this._web3.eth.Contract(abiTotalSupply, await this.contractAddress);
-            let totalSupply = await contract.methods.totalSupply().call();
+            var totalSupply: number;
+
+            try{
+                let contract = new this._web3.eth.Contract(abiTotalSupply, await this.contractAddress);
+                totalSupply = await contract.methods.totalSupply().call();
+            } catch(e) {
+                console.error(e)
+                throw Error(`[pool.tokenTotalSupply] Cannot get total supply of token: ${await this.contractAddress}`)
+            }
             this._tokenTotalSupply = Number(totalSupply) / 10**18
 
             return this._tokenTotalSupply
@@ -283,9 +321,15 @@ export class DataPool {
                 return this._totalHolders
             }
 
-            const chainId = await this._web3.eth.getChainId().then(value => { return Number(value) });
-            const resp = await ChainBaseAPI.getTotalHolders(chainId, await this.contractAddress);
-            this._totalHolders = resp['count'];
+            var resp: any;
+            try{
+                const chainId = await this._web3.eth.getChainId().then(value => { return Number(value) });
+                resp = await ChainBaseAPI.getTotalHolders(chainId, await this.contractAddress);
+            } catch(e) {
+                console.error(e)
+                throw Error(`[pool.totalHolders] Cannot get total holders of token: ${await this.contractAddress}`)
+            }
+            this._totalHolders = resp?.count;
 
             return this._totalHolders
         })();
@@ -297,8 +341,14 @@ export class DataPool {
                 return this._holderBalance
             }
 
-            const chainId = await this._web3.eth.getChainId().then(value => { return Number(value) });
-            const resp = await ChainBaseAPI.getTopHolders(chainId, await this.contractAddress)
+            var resp: any;
+            try{
+                const chainId = await this._web3.eth.getChainId().then(value => { return Number(value) });
+                resp = await ChainBaseAPI.getTopHolders(chainId, await this.contractAddress)
+            } catch(e) {
+                console.error(e)
+                throw Error(`[pool.topHolders] Cannot get top holders of token: ${await this.contractAddress}`)
+            }
 
             let holderLimit = resp.data.length;
             let holdersBalance: any = {};
@@ -306,12 +356,12 @@ export class DataPool {
                 holderLimit = 8
             }
             for (let i = 0; i < holderLimit; i++) {
-                if (resp.data[i]['wallet_address'] === await this.deployerAddress) {
-                    let balance = resp.data[i]['original_amount'];
-                    holdersBalance[resp.data[i]['wallet_address']] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) * 100).toFixed(2)}`;
-                } else if (resp.data[i]['wallet_address'] !== '0x000000000000000000000000000000000000dead') {
-                    let balance = resp.data[i]['original_amount'];
-                    holdersBalance[resp.data[i]['wallet_address']] = (Number(balance) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+                if (resp.data[i]?.wallet_address === await this.deployerAddress) {
+                    let balance = resp.data[i]?.original_amount;
+                    holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2)}`;
+                } else if (resp.data[i]?.wallet_address !== '0x000000000000000000000000000000000000dead') {
+                    let balance = resp.data[i]?.original_amount;
+                    holdersBalance[resp.data[i]?.wallet_address] = (Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2);
                 }
             }
             this._holderBalance = holdersBalance
@@ -344,11 +394,17 @@ export class DataPool {
             }
 
             if (!this._dexData) {
-                this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+                try {
+                    this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+                } catch(e) {
+                    console.error(e)
+                    throw Error('[pool.totalTxns] Cannot get data from DexScreener')
+                }
             }
-            let txns24h = this._dexData['pair']['txns']['h24']
-            let buyTxns = Number(txns24h['buys']);
-            let sellTxns = Number(txns24h['sells']);
+
+            let txns24h = this._dexData?.pair?.txns?.h24;
+            let buyTxns = Number(txns24h?.buys);
+            let sellTxns = Number(txns24h?.sells);
             this._totalTxns = buyTxns + sellTxns
             return this._totalTxns
         })();
@@ -361,9 +417,15 @@ export class DataPool {
             }
 
             if (!this._dexData) {
-                this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+                try {
+                    this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+                } catch(e) {
+                    console.error(e)
+                    throw Error('[pool.priceToken] Cannot get data from DexScreener')
+                }
             }
-            this._priceToken = Number(this._dexData['pair']['priceUsd'])
+            
+            this._priceToken = Number(this._dexData?.pair?.priceUsd)
             return this._priceToken
         })();
     }
@@ -375,9 +437,15 @@ export class DataPool {
             }
 
             if (!this._dexData) {
-                this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+                try {
+                    this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+                } catch(e) {
+                    console.error(e)
+                    throw Error('[pool.liquidity] Cannot get data from DexScreener')
+                }
             }
-            this._liquidity = Number(this._dexData['pair']['liquidity']['usd'])
+
+            this._liquidity = Number(this._dexData?.pair?.liquidity?.usd)
             return this._liquidity
         })();
     }
@@ -389,9 +457,15 @@ export class DataPool {
             }
 
             if (!this._dexData) {
-                this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+                try {
+                    this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
+                } catch(e) {
+                    console.error(e)
+                    throw Error('[pool.liveTime] Cannot get data from DexScreener')
+                }
+                
             }
-            let pairCreatedAt = Number(this._dexData['pair']['pairCreatedAt'])
+            let pairCreatedAt = Number(this._dexData?.pair?.pairCreatedAt)
             let currentTime = new Date();
             this._liveTime =  convertSeconds(((Number(currentTime) - pairCreatedAt) / 1000 / 60))
             return this._liveTime
@@ -405,7 +479,7 @@ export class DataPool {
             }
 
             await this._fulFillTransactionData();
-            return (await this.priceToken * ((await this.tokenTotalSupply - this._burnAmount) / 10**18))
+            return (await this.priceToken * ((await this.tokenTotalSupply - this._burnAmount)/10**18))
         })();
     }
 
@@ -415,7 +489,13 @@ export class DataPool {
                 return this._deployerBalance
             }
 
-            const resp = await BaseScanAPI.getBalanceAddress(await this.deployerAddress);
+            var resp: any;
+            try {
+                resp = await BaseScanAPI.getBalanceAddress(await this.deployerAddress);
+            } catch(e) {
+                console.error(e)
+                throw Error(`[pool.deployerBalance] Cannot get balance of deployer: ${await this.deployerAddress}`)
+            }
             this._deployerBalance = await transferGwei2Eth(resp.result)
 
             return this._deployerBalance
@@ -428,8 +508,15 @@ export class DataPool {
                 return this._isVerified
             }
 
-            const resp = BaseScanAPI.getAbi(await this.contractAddress)
-            this._isVerified = await checkAbi(resp['result'])
+            var resp: any;
+            try {
+                resp = await BaseScanAPI.getAbi(await this.contractAddress)
+            } catch(e) {
+                console.error(e)
+                throw Error(`[pool.verified] Cannot get ABI of contract: ${await this.contractAddress}`)
+            }
+             
+            this._isVerified = await checkAbi(resp?.result)
 
             return this._isVerified
         })();
@@ -450,13 +537,116 @@ export class DataPool {
         })();
     }
 
+    private async _checkPairorContract(address: string) {
+        var contract: string;
+        try {
+            contract = await getCAbyPair(address);
+        } catch(e) {
+            console.log(`${address} is not pair address`)
+            this._contractAddress = address
+            await this._getPairAddress(this._contractAddress)
+        }
+    }
+
+    private async _getPairAddress(contractAddress: string) {
+        var currentBlock: number;
+        var firstITxnUniV2 : any;
+        var firstITxnUniV3 : any;
+        var firstITxnSushi : any;
+        var firstITxnSB : any;
+    
+        try {
+            currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
+        } catch(e) {
+            throw Error('[pool._getPairAddress] Cannot get current block')
+        }
+        
+        let pairAddressUniV2 = await getPairUniV2(contractAddress);
+        try {
+            if (pairAddressUniV2) {
+                let firstITxnUniV2hash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressUniV2);
+                if (firstITxnUniV2hash) {
+                    firstITxnUniV2 = await this._web3.eth.getTransaction(firstITxnUniV2hash);
+                }
+            }
+        } catch(e) {
+            console.error(e)
+            throw Error('[pool._getPairAddress] Cannot get first internal txn uniV2')
+        }
+    
+        let pairAddressUniV3 = await getPairUniV3(contractAddress);
+        
+        try {
+            if (pairAddressUniV3) {
+                let firstITxnUniV3hash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressUniV3);
+                if (firstITxnUniV3hash) {
+                    firstITxnUniV3 = await this._web3.eth.getTransaction(firstITxnUniV3hash);
+                }
+            }
+        } catch(e) {
+            console.error(e)
+            throw Error('[utils._getPairAddress] Cannot get first internal txn uniV3')
+        }
+    
+        let pairAddressSushi = await getPairSushiV2(contractAddress);
+        try {
+            if (pairAddressSushi) {
+                let firstITxnSushihash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressSushi);
+                if (firstITxnSushihash) {
+                    firstITxnSushi = await this._web3.eth.getTransaction(firstITxnSushihash);
+                }
+            }
+        } catch(e) {
+            console.error(e)
+            throw Error('[pool._getPairAddress] Cannot get first internal txn sushi')
+        }
+    
+        let pairAddressSB = await getPairSwapBasedv2(contractAddress);
+        try {
+            if (pairAddressSB) {
+                let firstITxnSBhash = await BaseScanAPI.getFirstInternalTxn(currentBlock, pairAddressSB);
+                if (firstITxnSBhash) {
+                    firstITxnSB = await this._web3.eth.getTransaction(firstITxnSBhash);
+                }
+            }
+        } catch(e) {
+            console.error(e)
+            throw Error('[pool._getPairAddress] Cannot get first internal txn Swap based')
+        }
+    
+        if (firstITxnUniV2) {
+            let deployerPair = firstITxnUniV2['from'];
+            this._pairAddress = pairAddressUniV2!;
+            this._deployerAddress = deployerPair;
+            
+        }
+        else if (firstITxnUniV3) {
+            let deployerPair = firstITxnUniV3['from'];
+            this._pairAddress = pairAddressUniV3!;
+            this._deployerAddress = deployerPair;
+        } 
+        else if (firstITxnSushi) {
+            let deployerPair = firstITxnSushi['from'];
+            this._pairAddress = pairAddressSushi!;
+            this._deployerAddress = deployerPair;
+        }
+        else if (firstITxnSB) {
+            let deployerPair = firstITxnSB['from'];
+            this._pairAddress = pairAddressSB!;
+            this._deployerAddress = deployerPair;
+        }
+    }
+
     private async _fulFillTransactionData(): Promise<void> {
         const transaction = await this._web3.eth.getTransaction(this._transactionHash);
         this._deployerAddress = transaction?.from.toString();
         const txReceipt = await this._web3.eth.getTransactionReceipt(this._transactionHash);
-        this._pairAddress = txReceipt['logs'][0]['address'];
-        const amountLpBurnHex = txReceipt['logs'][0]['data'];
-        this._burnAmount = parseInt(String(amountLpBurnHex), 16);
+        if (txReceipt?.logs[0]){
+            this._pairAddress = txReceipt?.logs[0].address!;
+            await this._checkPairorContract(this._pairAddress)
+            const amountLpBurnHex = txReceipt?.logs[0].data!;
+            this._burnAmount = parseInt(String(amountLpBurnHex), 16);
+        }
     }
 
 }
