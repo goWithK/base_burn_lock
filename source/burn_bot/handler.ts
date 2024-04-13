@@ -23,11 +23,11 @@ export class BurnBotHandler implements IBotCommand {
             const chatId = -4114916111;
             // const tgMsg = ctx.emoji`${"locked"} <b>LP LOCK</b> | Test | Test \n\n`
 
-            // while (true) {
-            //     await this._startSendingMessages(true, chatId, ctx, bot);
-            //     await TimeHelper.delay(2.5);
-            // }
-            await this._startSendingMessages(true, chatId, ctx, bot);
+            while (true) {
+                await this._startSendingMessages(true, chatId, ctx, bot);
+                await TimeHelper.delay(2.5);
+            }
+            // await this._startSendingMessages(true, chatId, ctx, bot);
             // await bot.api.sendMessage(
             //     chatId,
             //     tgMsg,
