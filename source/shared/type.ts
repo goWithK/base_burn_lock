@@ -17,9 +17,11 @@ export type ConverstaionContext = Conversation<BotContext>;
 
 
 export interface IBotCommand {
-    start(bot: Bot<ParseModeFlavor<BotContext>>): void;
-    stop(bot: Bot<ParseModeFlavor<BotContext>>): void;
-    help(bot: Bot<ParseModeFlavor<BotContext>>): void;
+    registerStartCommand(bot: Bot<ParseModeFlavor<BotContext>>): void;
+    registerStopCommand(bot: Bot<ParseModeFlavor<BotContext>>): void;
+    registerHelpCommand(bot: Bot<ParseModeFlavor<BotContext>>): void;
+
+    executeStartCommand(bot: Bot<ParseModeFlavor<BotContext>>, ctx: any): Promise<void>;
 }
 
 export enum BotType {
