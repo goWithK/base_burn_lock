@@ -36,6 +36,11 @@ export class BurnBotHandler implements IBotCommand {
                 continue
             }
         }
+
+        // for (let i=0; i<1; i++)
+        // {
+        //     await this._startSendingMessages(true, chatId, ctx, bot);
+        // }
     }
 
     public registerHelpCommand(bot: Bot<ParseModeFlavor<BotContext>>): void {
