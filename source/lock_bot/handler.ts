@@ -51,7 +51,11 @@ export class LockBotHandler implements IBotCommand {
         while (true) {
             try {
                 await this._startSendingMessagesOM(true, chatId, ctx, bot);
-                await TimeHelper.delay(2.5);
+                // await this._startSendingMessagesTF(true, chatId, ctx, bot);
+                // await this._startSendingMessagesSushi(true, chatId, ctx, bot);
+                // await this._startSendingMessagesUniv2(true, chatId, ctx, bot);
+                // await this._startSendingMessagesUniv3(true, chatId, ctx, bot);
+                await TimeHelper.delay(4.5);
             }
             catch (e) {
                 console.error(e);
@@ -66,8 +70,8 @@ export class LockBotHandler implements IBotCommand {
         }
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-        // const startblock = Number(currentBlock)-3;
-        const startblock = 13018207;
+        const startblock = Number(currentBlock)-3;
+        // const startblock = 13018207;
 
         const resp = await BaseScanAPI.getLockOM(currentBlock, startblock);
 
@@ -92,131 +96,131 @@ export class LockBotHandler implements IBotCommand {
         }
     }
 
-    // private async _startSendingMessagesTF(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
-    //     if (!trueOrFalse) {
-    //         return;
-    //     }
+    private async _startSendingMessagesTF(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
+        if (!trueOrFalse) {
+            return;
+        }
 
-    //     const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-    //     // const startblock = Number(currentBlock)-3;
-    //     const startblock = 12176231;
+        const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
+        const startblock = Number(currentBlock)-3;
+        // const startblock = 12176231;
 
-    //     const resp = await BaseScanAPI.getLockTF(currentBlock, startblock);
+        const resp = await BaseScanAPI.getLockTF(currentBlock, startblock);
 
-    //     if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
-    //         return;
-    //     }
+        if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
+            return;
+        }
 
-    //     const transactionHash: string = resp.result[0]?.transactionHash;
-    //     const dataPool = new TFDataPool(transactionHash, 'TF');
-    //     const message = new Message(dataPool, ctx);
+        const transactionHash: string = resp.result[0]?.transactionHash;
+        const dataPool = new TFDataPool(transactionHash, 'TF');
+        const message = new Message(dataPool, ctx);
 
-    //     const msgContent = await message.getMsgContent();
+        const msgContent = await message.getMsgContent(bot);
 
-    //     if (msgContent != ''){
-    //         await bot.api.sendMessage(
-    //             chatId,
-    //             msgContent,
-    //             { parse_mode: "HTML" },
-    //         );
-    //     } else {
-    //         console.log(`Error in tx: ${transactionHash}`)
-    //     }
-    // }
+        if (msgContent != ''){
+            await bot.api.sendMessage(
+                chatId,
+                msgContent,
+                { parse_mode: "HTML" },
+            );
+        } else {
+            console.log(`Error in tx: ${transactionHash}`)
+        }
+    }
 
-    // private async _startSendingMessagesSushi(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
-    //     if (!trueOrFalse) {
-    //         return;
-    //     }
+    private async _startSendingMessagesSushi(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
+        if (!trueOrFalse) {
+            return;
+        }
 
-    //     const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-    //     // const startblock = Number(currentBlock)-3;
-    //     const startblock = 12176231;
+        const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
+        const startblock = Number(currentBlock)-3;
+        // const startblock = 12176231;
 
-    //     const resp = await BaseScanAPI.getLockUNCXsushi(currentBlock, startblock);
+        const resp = await BaseScanAPI.getLockUNCXsushi(currentBlock, startblock);
 
-    //     if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
-    //         return;
-    //     }
+        if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
+            return;
+        }
 
-    //     const transactionHash: string = resp.result[0]?.transactionHash;
-    //     const dataPool = new Univ2DataPool(transactionHash, 'UNCXsushi');
-    //     const message = new Message(dataPool, ctx);
+        const transactionHash: string = resp.result[0]?.transactionHash;
+        const dataPool = new Univ2DataPool(transactionHash, 'UNCXsushi');
+        const message = new Message(dataPool, ctx);
 
-    //     const msgContent = await message.getMsgContent();
+        const msgContent = await message.getMsgContent(bot);
 
-    //     if (msgContent != ''){
-    //         await bot.api.sendMessage(
-    //             chatId,
-    //             msgContent,
-    //             { parse_mode: "HTML" },
-    //         );
-    //     } else {
-    //         console.log(`Error in tx: ${transactionHash}`)
-    //     }
-    // }
+        if (msgContent != ''){
+            await bot.api.sendMessage(
+                chatId,
+                msgContent,
+                { parse_mode: "HTML" },
+            );
+        } else {
+            console.log(`Error in tx: ${transactionHash}`)
+        }
+    }
 
-    // private async _startSendingMessagesUniv2(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
-    //     if (!trueOrFalse) {
-    //         return;
-    //     }
+    private async _startSendingMessagesUniv2(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
+        if (!trueOrFalse) {
+            return;
+        }
 
-    //     const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-    //     // const startblock = Number(currentBlock)-3;
-    //     const startblock = 12176231;
+        const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
+        const startblock = Number(currentBlock)-3;
+        // const startblock = 12176231;
 
-    //     const resp = await BaseScanAPI.getLockUNCXuniv2(currentBlock, startblock);
+        const resp = await BaseScanAPI.getLockUNCXuniv2(currentBlock, startblock);
 
-    //     if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
-    //         return;
-    //     }
+        if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
+            return;
+        }
 
-    //     const transactionHash: string = resp.result[0]?.transactionHash;
-    //     const dataPool = new Univ2DataPool(transactionHash, 'UNCXuniv2');
-    //     const message = new Message(dataPool, ctx);
+        const transactionHash: string = resp.result[0]?.transactionHash;
+        const dataPool = new Univ2DataPool(transactionHash, 'UNCXuniv2');
+        const message = new Message(dataPool, ctx);
 
-    //     const msgContent = await message.getMsgContent();
+        const msgContent = await message.getMsgContent(bot);
 
-    //     if (msgContent != ''){
-    //         await bot.api.sendMessage(
-    //             chatId,
-    //             msgContent,
-    //             { parse_mode: "HTML" },
-    //         );
-    //     } else {
-    //         console.log(`Error in tx: ${transactionHash}`)
-    //     }
-    // }
+        if (msgContent != ''){
+            await bot.api.sendMessage(
+                chatId,
+                msgContent,
+                { parse_mode: "HTML" },
+            );
+        } else {
+            console.log(`Error in tx: ${transactionHash}`)
+        }
+    }
 
-    // private async _startSendingMessagesUniv3(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
-    //     if (!trueOrFalse) {
-    //         return;
-    //     }
+    private async _startSendingMessagesUniv3(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
+        if (!trueOrFalse) {
+            return;
+        }
 
-    //     const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-    //     // const startblock = Number(currentBlock)-3;
-    //     const startblock = 12176231;
+        const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
+        const startblock = Number(currentBlock)-3;
+        // const startblock = 12176231;
 
-    //     const resp = await BaseScanAPI.getLockUNCXuniv3(currentBlock, startblock);
+        const resp = await BaseScanAPI.getLockUNCXuniv3(currentBlock, startblock);
 
-    //     if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
-    //         return;
-    //     }
+        if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
+            return;
+        }
 
-    //     const transactionHash: string = resp.result[0]?.transactionHash;
-    //     const dataPool = new Univ3DataPool(transactionHash, resp);
-    //     const message = new Message(dataPool, ctx);
+        const transactionHash: string = resp.result[0]?.transactionHash;
+        const dataPool = new Univ3DataPool(transactionHash, resp);
+        const message = new Message(dataPool, ctx);
 
-    //     const msgContent = await message.getMsgContent();
+        const msgContent = await message.getMsgContent(bot);
 
-    //     if (msgContent != ''){
-    //         await bot.api.sendMessage(
-    //             chatId,
-    //             msgContent,
-    //             { parse_mode: "HTML" },
-    //         );
-    //     } else {
-    //         console.log(`Error in tx: ${transactionHash}`)
-    //     }
-    // }
+        if (msgContent != ''){
+            await bot.api.sendMessage(
+                chatId,
+                msgContent,
+                { parse_mode: "HTML" },
+            );
+        } else {
+            console.log(`Error in tx: ${transactionHash}`)
+        }
+    }
 }

@@ -133,7 +133,7 @@ export class OMDataPool implements IDataPool{
 
             const lockData = await this.lockInfo;
             this._pairAddress = lockData?.args[0];
-
+            console.log('Pair: ', this._pairAddress)
             return this._pairAddress
         })();
     }
@@ -145,7 +145,7 @@ export class OMDataPool implements IDataPool{
             }
 
             await this._fulFillTransactionData();
-
+            console.log('Deployer: ', this._deployerAddress)
             return this._deployerAddress
         })();
     }
@@ -183,7 +183,7 @@ export class OMDataPool implements IDataPool{
             } else {
                 this._contractAddress = await getCAbyDeployer(await this.deployerAddress)
             }
-
+            console.log('Contract: ', this._contractAddress)
             return this._contractAddress
         })();
     }
@@ -403,23 +403,28 @@ export class OMDataPool implements IDataPool{
                 throw Error(`[OM.pool.topHolders] Cannot get top holders of token: ${await this.contractAddress}`)
             }
 
-            let holderLimit = resp.data.length;
-            let holdersBalance: any = {};
-            if (resp.data.length > 8) {
-                holderLimit = 8
-            }
-            for (let i = 0; i < holderLimit; i++) {
-                if (resp.data[i]?.wallet_address === await this.deployerAddress) {
-                    let balance = resp.data[i]?.original_amount;
-                    holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2)}`;
-                } else if (resp.data[i]?.wallet_address !== '0x000000000000000000000000000000000000dead') {
-                    let balance = resp.data[i]?.original_amount;
-                    holdersBalance[resp.data[i]?.wallet_address] = (Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2);
+            if (resp?.data !== null){
+                let holderLimit = resp?.data.length;
+                let holdersBalance: any = {};
+                if (resp.data.length > 8) {
+                    holderLimit = 8
                 }
-            }
-            this._holderBalance = holdersBalance
+                for (let i = 0; i < holderLimit; i++) {
+                    if (resp.data[i]?.wallet_address === await this.deployerAddress) {
+                        let balance = resp.data[i]?.original_amount;
+                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2)}`;
+                    } else if (resp.data[i]?.wallet_address !== '0x000000000000000000000000000000000000dead') {
+                        let balance = resp.data[i]?.original_amount;
+                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2);
+                    }
+                }
+                this._holderBalance = holdersBalance
 
-            return this._holderBalance
+                return this._holderBalance
+            } else {
+                this._holderBalance = {'Maybe rug': 'Maybe rug'}
+                return this._holderBalance
+            }
         })();
     }
 
@@ -520,7 +525,7 @@ export class OMDataPool implements IDataPool{
             }
             let pairCreatedAt = Number(this._dexData?.pair?.pairCreatedAt)
             let currentTime = new Date();
-            this._liveTime =  convertSeconds(((Number(currentTime) - pairCreatedAt) / 1000 / 60))
+            this._liveTime =  convertSeconds(((Number(currentTime) - pairCreatedAt) / 1000))
             return this._liveTime
         })();
     }
@@ -592,6 +597,7 @@ export class OMDataPool implements IDataPool{
     }
 
     private async _fulFillTransactionData(): Promise<void> {
+        console.log('Tx hash: ', this._transactionHash)
         const transaction = await this._web3.eth.getTransaction(this._transactionHash);
         this._deployerAddress = transaction?.from.toString();
         this._transactionInput = transaction?.input.toString();

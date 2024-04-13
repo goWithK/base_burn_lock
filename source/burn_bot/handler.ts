@@ -29,7 +29,7 @@ export class BurnBotHandler implements IBotCommand {
         while (true) {
             try {
                 await this._startSendingMessages(true, chatId, ctx, bot);
-                await TimeHelper.delay(2.5);
+                await TimeHelper.delay(4.5);
             }
             catch (e) {
                 console.error(e);
@@ -69,7 +69,7 @@ export class BurnBotHandler implements IBotCommand {
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
         // const startblock = Number(currentBlock)-3;
         // const startblock = 12629658;
-        const startblock = 12906779;
+        const startblock = 13113829;
 
         const resp = await BaseScanAPI.getBurnEvent(currentBlock, startblock);
 
