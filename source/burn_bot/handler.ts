@@ -16,29 +16,29 @@ export class BurnBotHandler implements IBotCommand {
         this._web3 = new Web3(new Web3.providers.HttpProvider(`${process.env.ALCHEMY_ENDPOINT_BASE}`))
     }
 
-    public start(bot: Bot<ParseModeFlavor<BotContext>>): void {
+    public registerStartCommand(bot: Bot<ParseModeFlavor<BotContext>>): void {
         bot.command('start', async (ctx: any) => {
-            console.log('BURN IS RUNNING')
-            // console.log(typeof ctx);
-            const chatId = -4114916111;
-            // const tgMsg = ctx.emoji`${"locked"} <b>LP LOCK</b> | Test | Test \n\n`
-
-            while (true) {
-                await this._startSendingMessages(true, chatId, ctx, bot);
-                await TimeHelper.delay(2.5);
-            }
-            // await this._startSendingMessages(true, chatId, ctx, bot);
-            // await bot.api.sendMessage(
-            //     chatId,
-            //     tgMsg,
-            //     { parse_mode: "HTML" },
-            // );
-
-            // await TimeHelper.delay(3.5);
+            this.executeStartCommand(bot, ctx);
         });
     }
 
-    public help(bot: Bot<ParseModeFlavor<BotContext>>): void {
+    public async executeStartCommand(bot: Bot<ParseModeFlavor<BotContext>>, ctx: any): Promise<void> {
+        console.log('BURN IS RUNNING');
+        const chatId = -4114916111;
+
+        while (true) {
+            try {
+                await this._startSendingMessages(true, chatId, ctx, bot);
+                await TimeHelper.delay(2.5);
+            }
+            catch (e) {
+                console.error(e);
+                continue
+            }
+        }
+    }
+
+    public registerHelpCommand(bot: Bot<ParseModeFlavor<BotContext>>): void {
         bot.command('help', async (ctx: any) => {
             const chatId = ctx.msg.chat.id;
 
@@ -50,7 +50,7 @@ export class BurnBotHandler implements IBotCommand {
         });
     }
 
-    public stop(bot: Bot<ParseModeFlavor<BotContext>>): void {
+    public registerStopCommand(bot: Bot<ParseModeFlavor<BotContext>>): void {
         bot.command("stop", async (ctx: any) => {
             await ctx.reply("Leaving...");
         });

@@ -8,6 +8,7 @@ import { apiThrottler } from '@grammyjs/transformer-throttler';
 import { limit } from '@grammyjs/ratelimiter';
 import { run } from '@grammyjs/runner';
 import { MethodNotImplementedError } from 'web3';
+import { TimeHelper } from './helpers/time.helper';
 
 class TelegramBot {
 
@@ -23,11 +24,11 @@ class TelegramBot {
         );
 
         this._initConfig();
-        this._bot.catch(this._crashHandler);
+        this._crashHandler();
         
-        this._commandHandler.start(this._bot);
-        this._commandHandler.stop(this._bot);
-        this._commandHandler.help(this._bot);
+        this._commandHandler.registerStartCommand(this._bot);
+        this._commandHandler.registerStopCommand(this._bot);
+        this._commandHandler.registerHelpCommand(this._bot);
     }
 
     private _initConfig(): void {
@@ -70,20 +71,26 @@ class TelegramBot {
         throw new MethodNotImplementedError();
     }
 
-    private _crashHandler(err: any): void {
-        const ctx = err.ctx;
-        console.log(`[bot-catch][Error while handling update ${ctx.update.update_id}]`, err.error);
-        const e = err.error;
+    private async _crashHandler(): Promise<void> {
 
-        if (e instanceof GrammyError) {
-            console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e.message, e.stack)
-        } else if (e instanceof HttpError) {
-            console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e.error, e.stack)
-        } else {
-            console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e)
-        }
+        this._bot.catch(async (err: any) => {
+            const ctx = err.ctx;
+            // console.log(`[bot-catch][Error while handling update ${ctx.update.update_id}]`, err.error);
+            // const e = err.error;
 
-        process.kill(process.pid, 'SIGTERM')
+            // if (e instanceof GrammyError) {
+            //     console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e.message, e.stack)
+            // } else if (e instanceof HttpError) {
+            //     console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e.error, e.stack)
+            // } else {
+            //     console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e)
+            // }
+
+            console.error(err.error);
+            this._commandHandler.executeStartCommand(this._bot, ctx);
+
+            // process.kill(process.pid, 'SIGTERM')
+        })
     }
 
     public isInited(): boolean {
