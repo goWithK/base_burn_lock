@@ -18,8 +18,13 @@ export class Message {
         if (contractAddress) {
             const tokenName = await this._dataPool.tokenName;
             const tokenSymbol = await this._dataPool.tokenSymbol;
-            const burnPercent = await this._dataPool.burnPercent;
-            const marketCapBurn = await this._dataPool.marketCapBurn;
+
+            // TODO: Ask about this fields
+            // const burnPercent = await this._dataPool.burnPercent;
+            // const marketCapBurn = await this._dataPool.marketCapBurn;
+            const burnPercent = 0;
+            const marketCapBurn = 0;
+
             const totalTxns = await this._dataPool.totalTxns;
             const totalHolders = await this._dataPool.totalHolders;
             const topHolders = await this._dataPool.topHolders;

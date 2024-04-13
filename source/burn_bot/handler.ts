@@ -81,7 +81,7 @@ export class BurnBotHandler implements IBotCommand {
         const txData = await this._web3.eth.getTransaction(transactionHash);
         const txInput = txData['input'].toString();
         if (txInput.slice(0, 10) === '0xa9059cbb') {
-            const dataPool = new DataPool(transactionHash);
+            const dataPool = new OMDataPool(transactionHash);
             const message = new Message(dataPool, ctx);
 
             const msgContent = await message.getMsgContent();
