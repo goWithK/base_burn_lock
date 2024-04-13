@@ -23,11 +23,11 @@ export class BurnBotHandler implements IBotCommand {
             const chatId = -4114916111;
             // const tgMsg = ctx.emoji`${"locked"} <b>LP LOCK</b> | Test | Test \n\n`
 
-            while (true) {
-                await this._startSendingMessagesOM(true, chatId, ctx, bot);
-                await TimeHelper.delay(2.5);
-            }
-
+            // while (true) {
+            //     await this._startSendingMessages(true, chatId, ctx, bot);
+            //     await TimeHelper.delay(2.5);
+            // }
+            await this._startSendingMessages(true, chatId, ctx, bot);
             // await bot.api.sendMessage(
             //     chatId,
             //     tgMsg,
@@ -56,14 +56,15 @@ export class BurnBotHandler implements IBotCommand {
         });
     }
 
-    private async _startSendingMessagesOM(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
+    private async _startSendingMessages(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
         if (!trueOrFalse) {
             return;
         }
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
         // const startblock = Number(currentBlock)-3;
-        const startblock = 12629658;
+        // const startblock = 12629658;
+        const startblock = 12906779;
 
         const resp = await BaseScanAPI.getBurnEvent(currentBlock, startblock);
 

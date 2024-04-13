@@ -43,7 +43,7 @@ export class Message {
             if (renounced) { renounced_msg = this._ctx.emoji`Renounced: ${"check_mark_button"} \n` }
             let verified_msg = this._ctx.emoji`Verified: ${"cross_mark"} \n`
             if (verified) { verified_msg = this._ctx.emoji`Verified: ${"check_mark_button"} \n` }
-            let devBalance_msg = `Dev Balance: ${devBalance.toFixed(2)}ETH`
+            let devBalance_msg = this._ctx.emoji`Dev Balance: ${devBalance.toFixed(2)}ETH ${"left_arrow_curving_right"}`
             
             let holderAddress: any = Object.keys(topHolders);
             let list_msg: any = [];
