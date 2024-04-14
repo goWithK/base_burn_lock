@@ -16,27 +16,27 @@ const runApp = async () => {
         let mode = process.argv.slice(2)[0];
         if (mode == 'lockOM') {
             const commandHandler = new LockBotHandlerOM();
-            const bot = new TelegramBot(commandHandler, process.env.LOCK_BASE_BOT_OM ? process.env.LOCK_BASE_BOT_OM : '');
+            const bot = new TelegramBot(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
             bot.run();
         } 
         else if (mode == 'lockTF') {
             const commandHandler = new LockBotHandlerTF();
-            const bot = new TelegramBot(commandHandler, process.env.LOCK_BASE_BOT_TF ? process.env.LOCK_BASE_BOT_TF : '');
+            const bot = new TelegramBot(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
             bot.run();
         } 
         else if (mode == 'lockuniv2') {
             const commandHandler = new LockBotHandlerV2();
-            const bot = new TelegramBot(commandHandler, process.env.LOCK_BASE_BOT_V2 ? process.env.LOCK_BASE_BOT_V2 : '');
+            const bot = new TelegramBot(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
             bot.run();
         } 
-        else if (mode == 'locklockuniv3') {
+        else if (mode == 'lockuniv3') {
             const commandHandler = new LockBotHandlerV3();
-            const bot = new TelegramBot(commandHandler, process.env.LOCK_BASE_BOT_V3 ? process.env.LOCK_BASE_BOT_V3 : '');
+            const bot = new TelegramBot(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
             bot.run();
         } 
         else if (mode == 'burn') {
             const commandHandler = new BurnBotHandler();
-            const bot = new TelegramBot(commandHandler, process.env.BURN_BASE_BOT ? process.env.BURN_BASE_BOT : '');
+            const bot = new TelegramBot(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
             bot.run();
         }
         
