@@ -38,7 +38,7 @@ export class Message {
             let ca_msg = `<a href="https://basescan.org/address/${contractAddress}">CA:</a> <code>${contractAddress}</code>\n`;
             let lock_msg = this._ctx.emoji`<b>${'locked'} Liquidity: **${lockPercent.toFixed(2)} % of Liquidity Locked for ${lockDays.toFixed(0)} days**</b>\n`;
             let mc_msg = this._ctx.emoji`${"bar_chart"} MC: <b>${formatter.format(marketCapLock)}</b>\n`
-            let initLp_msg = this._ctx.emoji`${"money_with_wings"} Initial LP: ${initialLp} E ${"left_arrow_curving_right"} Current LP: ${formatter.format(liquidity)} \n`;
+            let initLp_msg = this._ctx.emoji`${"money_with_wings"} Initial LP: ${initialLp.toFixed(2)} E ${"left_arrow_curving_right"} Current LP: ${formatter.format(liquidity)} \n`;
             let stats_msg = this._ctx.emoji`${"left_arrow_curving_right"} Live: ${liveTime} ${"left_arrow_curving_right"} Holders: ${totalHolders} ${"left_arrow_curving_right"} Txns: ${totalTxns}\n`;
             let ca_balance_msg = `Clog: ${clog}% \n`;
             let renounced_msg = this._ctx.emoji`Renounced: ${"cross_mark"} \n`

@@ -64,7 +64,7 @@ export class LockBotHandlerOM implements IBotCommand {
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
         const startblock = Number(currentBlock)-3;
-        // const startblock = 13018207;
+        // const startblock = 13151912;
 
         const resp = await BaseScanAPI.getLockOM(currentBlock, startblock);
 

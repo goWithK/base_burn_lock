@@ -42,7 +42,7 @@ export class LockBotHandlerV3 implements IBotCommand {
     }
 
     public async executeStartCommand(bot: Bot<ParseModeFlavor<BotContext>>, ctx: any): Promise<void> {
-        console.log('LOCK IS RUNNING');
+        console.log('LOCK UniV3 IS RUNNING');
         const chatId = process.env.CHAT_ID ? process.env.CHAT_ID : -4114916111
 
         while (true) {
@@ -64,7 +64,7 @@ export class LockBotHandlerV3 implements IBotCommand {
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
         const startblock = Number(currentBlock)-3;
-        // const startblock = 12176231;
+        // const startblock = 13147322;
 
         const resp = await BaseScanAPI.getLockUNCXuniv3(currentBlock, startblock);
 
@@ -75,7 +75,7 @@ export class LockBotHandlerV3 implements IBotCommand {
         await TimeHelper.delay(1);
         for (let i = 0; i < resp?.result.length; i++) {
             const transactionHash: string = resp.result[i]?.transactionHash;
-            const dataPool = new Univ3DataPool(transactionHash, resp);
+            const dataPool = new Univ3DataPool(transactionHash, resp.result[i]);
             const message = new Message(dataPool, ctx);
 
             const msgContent = await message.getMsgContent(bot);

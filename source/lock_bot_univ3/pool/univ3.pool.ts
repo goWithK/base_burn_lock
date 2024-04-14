@@ -5,9 +5,9 @@ import { ethers } from 'ethers';
 import { BaseScanAPI } from "../../shared/apis/basescan.api";
 import { ChainBaseAPI } from "../../shared/apis/chainbase.api";
 import { DexScreenerAPI } from "../../shared/apis/dexscreener.api";
-import { 
+import {
     convertSeconds,
-    getInitLPbyPair, 
+    getInitLPbyPair,
     getInitLPbyDeployer,
     getExchange,
     getCAbyPair,
@@ -39,7 +39,7 @@ export class Univ3DataPool implements IDataPool {
     private _tokenDecimal: number;
     private _tokenTotalSupply: number;
     private _totalHolders: number;
-    private _holderBalance: {[index: string]: any};
+    private _holderBalance: { [index: string]: any };
     private _initLp: number;
     private _totalTxns: number;
     private _priceToken: number;
@@ -77,17 +77,17 @@ export class Univ3DataPool implements IDataPool {
             try {
                 const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
                 resp = await BaseScanAPI.getTxnbyAddress(currentBlock, await this.deployerAddress);
-            } catch(e) {
+            } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool.renounced] Error when get transaction by address: ${await this.deployerAddress}`)
             }
-            
+
             var isLatest = false;
             for (let i = 0; i < resp?.result.length; i++) {
                 if (!resp?.result[i]?.input || resp?.result[i]?.input == '') {
                     continue;
                 }
-                
+
                 if (resp?.result[i]?.input.slice(0, 10) === '0x715018a6') {
                     this._isRenounced = true;
                     isLatest = true;
@@ -138,22 +138,22 @@ export class Univ3DataPool implements IDataPool {
 
     public get exchange(): Promise<string> {
         return (async () => {
-            if (this._exchange){
+            if (this._exchange) {
                 return this._exchange
             }
 
             try {
                 this._exchange = await getExchange(await this.pairAddress);
             } catch (error) {
-                console.log(error)
+                console.log('CHECK UNI V3')
                 let isV3 = await checkFactoryV3(await this.pairAddress);
                 if (isV3) {
-                    this._exchange= 'UNI-V3'
+                    this._exchange = 'UNI-V3'
                 } else {
                     this._exchange = 'Unknown'
                 }
             }
-            console.log('Contract: ', this._contractAddress)
+            
             return this._exchange
         })();
     }
@@ -164,12 +164,12 @@ export class Univ3DataPool implements IDataPool {
                 return this._contractAddress
             }
 
-            if (await this.exchange != 'Unknown'){
+            if (await this.exchange != 'Unknown') {
                 this._contractAddress = await getCAbyPair(await this.pairAddress);
             } else {
                 this._contractAddress = await getCAbyDeployer(await this.deployerAddress)
             }
-
+            console.log('Contract: ', this._contractAddress)
             return this._contractAddress
         })();
     }
@@ -185,12 +185,12 @@ export class Univ3DataPool implements IDataPool {
 
             try {
                 const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-                resp = await BaseScanAPI.getLpAmount(currentBlock, await this.pairAddress ,await this.deployerAddress);
-            } catch(e) {
+                resp = await BaseScanAPI.getLpAmount(currentBlock, await this.pairAddress, await this.deployerAddress);
+            } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool.lockPercent] Cannot get LP of pair: ${await this.pairAddress}`)
             }
-            
+
             const totalLp = Number(resp?.result[0]?.value)
             this._lockPercent = Number(this._lockAmount) / Number(totalLp) * 100;
 
@@ -241,7 +241,7 @@ export class Univ3DataPool implements IDataPool {
             try {
                 let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
                 this._tokenName = await contract.methods.name().call();
-            } catch(e) {
+            } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool.tokenName] Cannot get name of token: ${await this.contractAddress}`)
             }
@@ -271,10 +271,10 @@ export class Univ3DataPool implements IDataPool {
                     "type": "function"
                 }
             ] as const;
-            try{
+            try {
                 let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
                 this._tokenSymbol = await contract.methods.symbol().call();
-            } catch(e) {
+            } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool.tokenSymbol] Cannot get symbol of token: ${await this.contractAddress}`)
             }
@@ -304,10 +304,10 @@ export class Univ3DataPool implements IDataPool {
                     "type": "function"
                 }
             ] as const;
-            try{
+            try {
                 let contract = new this._web3.eth.Contract(abi, await this.contractAddress);
                 this._tokenDecimal = await contract.methods.decimals().call();
-            } catch(e) {
+            } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool.tokenDecimal] Cannot get decimals of token: ${await this.contractAddress}`)
             }
@@ -339,14 +339,14 @@ export class Univ3DataPool implements IDataPool {
             ] as const;
             var totalSupply: number;
 
-            try{
+            try {
                 let contract = new this._web3.eth.Contract(abiTotalSupply, await this.contractAddress);
                 totalSupply = await contract.methods.totalSupply().call();
-            } catch(e) {
+            } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool.tokenTotalSupply] Cannot get total supply of token: ${await this.contractAddress}`)
             }
-            this._tokenTotalSupply = Number(totalSupply) / 10**18
+            this._tokenTotalSupply = Number(totalSupply) / 10 ** 18
 
             return this._tokenTotalSupply
         })();
@@ -359,10 +359,10 @@ export class Univ3DataPool implements IDataPool {
             }
 
             var resp: any;
-            try{
+            try {
                 const chainId = await this._web3.eth.getChainId().then(value => { return Number(value) });
                 resp = await ChainBaseAPI.getTotalHolders(chainId, await this.contractAddress);
-            } catch(e) {
+            } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool.totalHolders] Cannot get total holders of token: ${await this.contractAddress}`)
             }
@@ -372,22 +372,22 @@ export class Univ3DataPool implements IDataPool {
         })();
     }
 
-    public get topHolders(): Promise<{[index: string]: any}> {
+    public get topHolders(): Promise<{ [index: string]: any }> {
         return (async () => {
             if (this._holderBalance) {
                 return this._holderBalance
             }
 
             var resp: any;
-            try{
+            try {
                 const chainId = await this._web3.eth.getChainId().then(value => { return Number(value) });
                 resp = await ChainBaseAPI.getTopHolders(chainId, await this.contractAddress)
-            } catch(e) {
+            } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool.topHolders] Cannot get top holders of token: ${await this.contractAddress}`)
             }
 
-            if (resp?.data !== null){
+            if (resp?.data !== null) {
                 let holderLimit = resp?.data.length;
                 let holdersBalance: any = {};
                 if (resp.data.length > 8) {
@@ -396,17 +396,17 @@ export class Univ3DataPool implements IDataPool {
                 for (let i = 0; i < holderLimit; i++) {
                     if (resp.data[i]?.wallet_address === await this.deployerAddress) {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2)}`;
+                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) / 10 ** 18 * 100).toFixed(2)}`;
                     } else if (resp.data[i]?.wallet_address !== '0x000000000000000000000000000000000000dead') {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2);
+                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance) / Number(await this.tokenTotalSupply) / 10 ** 18 * 100).toFixed(2);
                     }
                 }
                 this._holderBalance = holdersBalance
 
                 return this._holderBalance
             } else {
-                this._holderBalance = {'Maybe rug': 'Maybe rug'}
+                this._holderBalance = { 'Maybe rug': 'Maybe rug' }
                 return this._holderBalance
             }
         })();
@@ -438,7 +438,7 @@ export class Univ3DataPool implements IDataPool {
             if (!this._dexData) {
                 try {
                     this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
-                } catch(e) {
+                } catch (e) {
                     console.error(e)
                     throw Error('[univ3.pool.totalTxns] Cannot get data from DexScreener')
                 }
@@ -461,12 +461,12 @@ export class Univ3DataPool implements IDataPool {
             if (!this._dexData) {
                 try {
                     this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
-                } catch(e) {
+                } catch (e) {
                     console.error(e)
                     throw Error('[univ3.pool.priceToken] Cannot get data from DexScreener')
                 }
             }
-            
+
             this._priceToken = Number(this._dexData?.pair?.priceUsd)
             return this._priceToken
         })();
@@ -481,7 +481,7 @@ export class Univ3DataPool implements IDataPool {
             if (!this._dexData) {
                 try {
                     this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
-                } catch(e) {
+                } catch (e) {
                     console.error(e)
                     throw Error('[univ3.pool.liquidity] Cannot get data from DexScreener')
                 }
@@ -501,15 +501,15 @@ export class Univ3DataPool implements IDataPool {
             if (!this._dexData) {
                 try {
                     this._dexData = await DexScreenerAPI.getDexData(await this.pairAddress)
-                } catch(e) {
+                } catch (e) {
                     console.error(e)
                     throw Error('[unv3.pool.liveTime] Cannot get data from DexScreener')
                 }
-                
+
             }
             let pairCreatedAt = Number(this._dexData?.pair?.pairCreatedAt)
             let currentTime = new Date();
-            this._liveTime =  convertSeconds(((Number(currentTime) - pairCreatedAt) / 1000))
+            this._liveTime = convertSeconds(((Number(currentTime) - pairCreatedAt) / 1000))
             return this._liveTime
         })();
     }
@@ -534,7 +534,7 @@ export class Univ3DataPool implements IDataPool {
             var resp: any;
             try {
                 resp = await BaseScanAPI.getBalanceAddress(await this.deployerAddress);
-            } catch(e) {
+            } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool.deployerBalance] Cannot get balance of deployer: ${await this.deployerAddress}`)
             }
@@ -553,11 +553,11 @@ export class Univ3DataPool implements IDataPool {
             var resp: any;
             try {
                 resp = await BaseScanAPI.getAbi(await this.contractAddress)
-            } catch(e) {
+            } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool.verified] Cannot get ABI of contract: ${await this.contractAddress}`)
             }
-             
+
             this._isVerified = await checkAbi(resp?.result)
 
             return this._isVerified
@@ -666,10 +666,10 @@ export class Univ3DataPool implements IDataPool {
             ] as const;
             var lockData: any;
 
-            try{
+            try {
                 let contract = new this._web3.eth.Contract(abi, '0x231278eDd38B00B07fBd52120CEf685B9BaEBCC1');
                 lockData = await contract.methods.getLock(lockId).call();
-            } catch(e) {
+            } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool._getLockbyId] Cannot get data by lockId: ${lockId}`)
             }
@@ -680,8 +680,8 @@ export class Univ3DataPool implements IDataPool {
 
     private async _fulfillInfoLock(): Promise<void> {
         console.log('Tx hash: ', this._transactionHash)
-        this._lockId = parseInt(this._eventData?.slice(2, 64 + 2), 16)
-        let lockAmountHex = this._eventData?.slice(64 * 17 + 2, 64 * 18 + 2);
+        this._lockId = parseInt(this._eventData?.data.slice(2, 64 + 2), 16)
+        let lockAmountHex = this._eventData?.data.slice(64 * 17 + 2, 64 * 18 + 2);
         this._lockAmount = parseInt(lockAmountHex, 16);
         this._infoLock = await this._getLockbyId(this._lockId)
     }

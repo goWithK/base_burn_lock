@@ -29,7 +29,7 @@ const runApp = async () => {
             const bot = new TelegramBot(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
             bot.run();
         } 
-        else if (mode == 'locklockuniv3') {
+        else if (mode == 'lockuniv3') {
             const commandHandler = new LockBotHandlerV3();
             const bot = new TelegramBot(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
             bot.run();
