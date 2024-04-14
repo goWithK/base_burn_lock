@@ -1,11 +1,57 @@
 version: "3.7"
 services:
-  index_lock_bot:
+  base:
     build:
       context: .
       dockerfile: ./dockerfile
-    image: index_lock_bot
-    container_name: index_lock_bot
+    image: base
+    
+  lock_om:
+    image: base
+    container_name: lock_om
+    depends_on:
+      - base
     env_file:
-      - ./dev.env
+      - ./source/lock_bot_om/.env
     restart: unless-stopped
+    entrypoint: ["npx", "ts-node-dev", "main.ts", "lockOM"]
+
+  lock_tf:
+    image: base
+    container_name: lock_tf
+    depends_on:
+      - base
+    env_file:
+      - ./source/lock_bot_tf/.env
+    restart: unless-stopped
+    entrypoint: ["npx", "ts-node-dev", "main.ts", "lockTF"]
+
+  lockuniv2:
+    image: base
+    container_name: lockuniv2
+    depends_on:
+      - base
+    env_file:
+      - ./source/lock_bot_univ2/.env
+    restart: unless-stopped
+    entrypoint: ["npx", "ts-node-dev", "main.ts", "lockuniv2"]
+
+  lockuniv3:
+    image: base
+    container_name: lockuniv3
+    depends_on:
+      - base
+    env_file:
+      - ./source/lock_bot_univ3/.env
+    restart: unless-stopped
+    entrypoint: ["npx", "ts-node-dev", "main.ts", "lockuniv3"]
+
+  burn:
+    image: base
+    container_name: burn
+    depends_on:
+      - base
+    env_file:
+      - ./source/burn_bot/.env
+    restart: unless-stopped
+    entrypoint: ["npx", "ts-node-dev", "main.ts", "burn"]
