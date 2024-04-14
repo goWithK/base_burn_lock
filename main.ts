@@ -8,9 +8,6 @@ import { BurnBotHandler } from './source/burn_bot/handler';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-
-dotenv.config();
-
 const runApp = async () => {
     try {
         let mode = process.argv.slice(2)[0];
