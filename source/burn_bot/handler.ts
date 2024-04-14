@@ -67,33 +67,35 @@ export class BurnBotHandler implements IBotCommand {
         }
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-        // const startblock = Number(currentBlock)-3;
+        const startblock = Number(currentBlock)-3;
         // const startblock = 12629658;
-        const startblock = 13113829;
-
+        // const startblock = 13113829;
+        await TimeHelper.delay(1);
         const resp = await BaseScanAPI.getBurnEvent(currentBlock, startblock);
 
         if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
             return;
         }
 
-        const transactionHash: string = resp.result[0]?.transactionHash;
-        const txData = await this._web3.eth.getTransaction(transactionHash);
-        const txInput = txData['input'].toString();
-        if (txInput.slice(0, 10) === '0xa9059cbb') {
-            const dataPool = new DataPool(transactionHash);
-            const message = new Message(dataPool, ctx);
+        for (let i = 0; i < resp?.result.length; i++) {
+            const transactionHash: string = resp.result[i]?.transactionHash;
+            const txData = await this._web3.eth.getTransaction(transactionHash);
+            const txInput = txData['input'].toString();
+            if (txInput.slice(0, 10) === '0xa9059cbb') {
+                const dataPool = new DataPool(transactionHash);
+                const message = new Message(dataPool, ctx);
 
-            const msgContent = await message.getMsgContent();
+                const msgContent = await message.getMsgContent();
 
-            if (msgContent != ''){
-                await bot.api.sendMessage(
-                    chatId,
-                    msgContent,
-                    { parse_mode: "HTML" },
-                );
-            } else {
-                console.log(`Error in tx: ${transactionHash}`)
+                if (msgContent != ''){
+                    await bot.api.sendMessage(
+                        chatId,
+                        msgContent,
+                        { parse_mode: "HTML" },
+                    );
+                } else {
+                    console.log(`Error in tx: ${transactionHash}`)
+                }
             }
         }
     }
