@@ -75,21 +75,19 @@ class TelegramBot {
 
         this._bot.catch(async (err: any) => {
             const ctx = err.ctx;
-            // console.log(`[bot-catch][Error while handling update ${ctx.update.update_id}]`, err.error);
-            // const e = err.error;
+            console.log(`[bot-catch][Error while handling update ${ctx.update.update_id}]`, err.error);
+            const e = err.error;
 
-            // if (e instanceof GrammyError) {
-            //     console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e.message, e.stack)
-            // } else if (e instanceof HttpError) {
-            //     console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e.error, e.stack)
-            // } else {
-            //     console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e)
-            // }
+            if (e instanceof GrammyError) {
+                console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e.message, e.stack)
+            } else if (e instanceof HttpError) {
+                console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e.error, e.stack)
+            } else {
+                console.log(`[bot-catch][Error in request ${ctx.update.update_id}]`, e)
+            }
 
             console.error(err.error);
             this._commandHandler.executeStartCommand(this._bot, ctx);
-
-            // process.kill(process.pid, 'SIGTERM')
         })
     }
 
@@ -102,7 +100,12 @@ class TelegramBot {
             console.log('BOT INITIATED!!!');
             const runner = run(this._bot);
 
-            const stopRunner = () => runner.isRunning() && runner.stop();
+            const stopRunner = () => {
+                console.log('Stop runner');
+                if (runner.isRunning()) {
+                    runner.stop()
+                }
+            };
 
             process.once("SIGINT", stopRunner);
             process.once("SIGTERM", stopRunner);
