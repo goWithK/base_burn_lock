@@ -43,7 +43,7 @@ export class LockBotHandlerOM implements IBotCommand {
 
     public async executeStartCommand(bot: Bot<ParseModeFlavor<BotContext>>, ctx: any): Promise<void> {
         console.log('LOCK OM IS RUNNING');
-        const chatId = -4114916111;
+        const chatId = process.env.CHAT_ID ? process.env.CHAT_ID : -4114916111
 
         while (true) {
             try {
