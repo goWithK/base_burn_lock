@@ -99,7 +99,7 @@ export class LockBotHandlerV2 implements IBotCommand {
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
         const startblock = Number(currentBlock)-3;
-        // const startblock = 13130911;
+        // const startblock = 13201880;
 
         const resp = await BaseScanAPI.getLockUNCXuniv2(currentBlock, startblock);
 

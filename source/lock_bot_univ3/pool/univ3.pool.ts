@@ -15,7 +15,8 @@ import {
     getCAbyDeployer,
     transferGwei2Eth,
     checkAbi,
-    getClog
+    getClog,
+    getLpAmountUniv3
 } from "../../shared/helpers/utils"
 import { IDataPool } from "../../shared/type";
 
@@ -130,7 +131,7 @@ export class Univ3DataPool implements IDataPool {
             }
 
             const lockData = await this.lockInfo;
-            this._deployerAddress = lockData?.collectAddress;
+            this._deployerAddress = lockData?.owner;
             console.log('Deployer: ', this._deployerAddress)
             return this._deployerAddress
         })();
@@ -182,15 +183,23 @@ export class Univ3DataPool implements IDataPool {
 
             await this._fulfillInfoLock()
             var resp: any;
+            var currentBlock: number;
 
             try {
-                const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
+                currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
                 resp = await BaseScanAPI.getLpAmount(currentBlock, await this.pairAddress, await this.deployerAddress);
             } catch (e) {
                 console.error(e)
                 throw Error(`[univ3.pool.lockPercent] Cannot get LP of pair: ${await this.pairAddress}`)
             }
 
+            if(resp?.result.length == 0) {
+                let liquidityAmount = await getLpAmountUniv3(await this.pairAddress)
+                this._lockPercent = Number(this._lockAmount) / Number(liquidityAmount) * 100;
+
+                return this._lockPercent
+            } 
+            
             const totalLp = Number(resp?.result[0]?.value)
             this._lockPercent = Number(this._lockAmount) / Number(totalLp) * 100;
 

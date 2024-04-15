@@ -68,8 +68,7 @@ export class BurnBotHandler implements IBotCommand {
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
         const startblock = Number(currentBlock)-3;
-        // const startblock = 12629658;
-        // const startblock = 13113829;
+        // const startblock = 13198521;
         await TimeHelper.delay(1);
         const resp = await BaseScanAPI.getBurnEvent(currentBlock, startblock);
 

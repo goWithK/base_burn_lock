@@ -536,8 +536,7 @@ export class OMDataPool implements IDataPool{
                 return this._marketCapLock
             }
 
-            let burnAmount = 0;
-            return (await this.priceToken * ((await this.tokenTotalSupply - burnAmount)))
+            return (await this.priceToken * ((await this.tokenTotalSupply)))
         })();
     }
 

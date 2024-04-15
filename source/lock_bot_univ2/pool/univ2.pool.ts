@@ -132,6 +132,7 @@ export class Univ2DataPool implements IDataPool {
             }
 
             const lockData = await this.lockInfo;
+            console.log(lockData)
             this._pairAddress = lockData?.args[0];
             console.log('Pair: ', this._pairAddress)
             return this._pairAddress
@@ -479,6 +480,7 @@ export class Univ2DataPool implements IDataPool {
                     throw Error('[univ2.pool.priceToken] Cannot get data from DexScreener')
                 }
             }
+            console.log(this._dexData)
             this._priceToken = Number(this._dexData?.pair?.priceUsd)
             return this._priceToken
         })();
@@ -498,7 +500,7 @@ export class Univ2DataPool implements IDataPool {
                     throw Error('[univ2.pool.liquidity] Cannot get data from DexScreener')
                 }
             }
-
+            
             this._liquidity = Number(this._dexData?.pair?.liquidity?.usd)
             return this._liquidity
         })();
