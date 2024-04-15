@@ -488,7 +488,7 @@ export class DataPool {
             }
 
             await this._fulFillTransactionData();
-            return (await this.priceToken * ((await this.tokenTotalSupply - this._burnAmount)/10**18))
+            return (await this.priceToken * ((await this.tokenTotalSupply - this._burnAmount/10**18)))
         })();
     }
 

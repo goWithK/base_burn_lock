@@ -64,7 +64,7 @@ export class BaseScanAPI {
     }
 
     public static async getTxnbyAddress(currentBlock: number, address: string) {
-        const urlGetCA = `https://api.basescan.org/api?module=account&action=txlist&address=${address}&page=1&offset=500&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY_2}`
+        const urlGetCA = `https://api.basescan.org/api?module=account&action=txlist&address=${address}&page=1&offset=100&startblock=0&endblock=${currentBlock}&sort=desc&apikey=${process.env.API_BASESCAN_KEY_2}`
     
         const resp = await fetch(urlGetCA);
 

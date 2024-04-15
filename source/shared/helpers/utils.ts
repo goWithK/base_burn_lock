@@ -229,9 +229,9 @@ async function filterAddLiquidityTxn(txns: any) {
                 || txns?.result[i]?.input.slice(0, 10) === '0x51c6590a'
                 || txns?.result[i]?.input.slice(0, 10) === '0xac9650d8'
                 && isLatest === false) {
-                const createTxn = txns['result'][i];
+                const createTxn = txns?.result[i];
                 const getCa = (keyName: keyof typeof createTxn) => {
-                    return createTxn[keyName]
+                    return createTxn?.keyName
                 };
                 isLatest = true;
                 initLp.push(Number(getCa('value')) / 10 ** 18)
@@ -708,4 +708,46 @@ export async function getClog(contractAddress: string) {
     }
 
     return clog
+}
+
+export async function getLpAmountUniv3 (pairAddress: string) {
+    const abi = [
+        {
+            "inputs": [],
+            "name": "token1",
+            "outputs": [
+                {
+                    "internalType": "address",
+                    "name": "",
+                    "type": "address"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        },
+        {
+            "inputs": [],
+            "name": "liquidity",
+            "outputs": [
+                {
+                    "internalType": "uint128",
+                    "name": "",
+                    "type": "uint128"
+                }
+            ],
+            "stateMutability": "view",
+            "type": "function"
+        }
+    ] as const;
+    var liquidity: number;
+
+    try{
+        let contract = new web3.eth.Contract(abi, pairAddress);
+        liquidity = await contract.methods.liquidity().call();
+    } catch (e) {
+        console.error(e)
+        throw Error(`[utils.getLpAmountUniv3] Cannot get liquidity of pair ${pairAddress}`)
+    }
+    
+    return Number(liquidity)
 }
