@@ -362,7 +362,7 @@ export class OMDataPool implements IDataPool{
                 console.error(e)
                 throw Error(`[OM.pool.tokenTotalSupply] Cannot get total supply of token: ${await this.contractAddress}`)
             }
-            this._tokenTotalSupply = Number(totalSupply) / 10**18
+            this._tokenTotalSupply = Number(totalSupply) / 10**(18 - Number(await this.tokenDecimal))
 
             return this._tokenTotalSupply
         })();

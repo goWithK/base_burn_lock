@@ -362,7 +362,7 @@ export class TFDataPool implements IDataPool {
                 console.error(e)
                 throw Error(`[TF.pool.tokenTotalSupply] Cannot get total supply of token: ${await this.contractAddress}`)
             }
-            this._tokenTotalSupply = Number(totalSupply) / 10**18
+            this._tokenTotalSupply = Number(totalSupply) / 10**(18 - Number(await this.tokenDecimal))
 
             return this._tokenTotalSupply
         })();
@@ -539,7 +539,7 @@ export class TFDataPool implements IDataPool {
             }
 
             let burnAmount = 0;
-            return (await this.priceToken * ((await this.tokenTotalSupply - burnAmount)))
+            return (await this.priceToken * (await this.tokenTotalSupply))
         })();
     }
 

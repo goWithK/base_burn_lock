@@ -310,7 +310,7 @@ export class DataPool {
                 console.error(e)
                 throw Error(`[pool.tokenTotalSupply] Cannot get total supply of token: ${await this.contractAddress}`)
             }
-            this._tokenTotalSupply = Number(totalSupply) / 10**18
+            this._tokenTotalSupply = Number(totalSupply) / 10**(18 - Number(await this.tokenTotalSupply))
 
             return this._tokenTotalSupply
         })();
@@ -488,7 +488,7 @@ export class DataPool {
             }
 
             await this._fulFillTransactionData();
-            return (await this.priceToken * ((await this.tokenTotalSupply - this._burnAmount/10**18)))
+            return (await this.priceToken * ((await this.tokenTotalSupply - this._burnAmount/10**(18 - Number(await this.tokenTotalSupply)))))
         })();
     }
 
@@ -652,8 +652,8 @@ export class DataPool {
         this._deployerAddress = transaction?.from.toString();
         const txReceipt = await this._web3.eth.getTransactionReceipt(this._transactionHash);
         if (txReceipt?.logs[0]){
-            this._pairAddress = txReceipt?.logs[0].address!;
-            await this._checkPairorContract(this._pairAddress)
+            let _pairAddress = txReceipt?.logs[0].address!;
+            await this._checkPairorContract(_pairAddress)
             const amountLpBurnHex = txReceipt?.logs[0].data!;
             this._burnAmount = parseInt(String(amountLpBurnHex), 16);
         }
