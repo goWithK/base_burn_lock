@@ -64,7 +64,7 @@ export class DataPool {
             const resp = await BaseScanAPI.getTxnbyAddress(currentBlock, await this.deployer);
             let isLatest = false;
 
-            for (let i = 0; i < resp['result'].length; i++) {
+            for (let i = 0; i < resp?.result.length; i++) {
                 if (!resp?.result[i]?.input || resp?.result[i]?.input == '') {
                     continue;
                 }
@@ -78,7 +78,7 @@ export class DataPool {
                     || resp?.result[i]?.input.slice(0, 10) === '0x6bdef376'
                     && isLatest === false
                 ) {
-                    const createTxn = resp['result'][i];
+                    const createTxn = resp?.result[i];
                     const getCa = (keyName: keyof typeof createTxn) => {
                         return createTxn[keyName]
                     };
@@ -89,7 +89,7 @@ export class DataPool {
 
                 } 
                 else if (resp?.result[i]?.input.slice(0, 10) === '0xf346c18d') {
-                    const createTxn = resp['result'][i];
+                    const createTxn = resp?.result[i];
                     const getCa = (keyName: keyof typeof createTxn) => {
                         return createTxn[keyName]
                     };

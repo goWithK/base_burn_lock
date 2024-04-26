@@ -174,24 +174,24 @@ async function getCAbyDeployer(deployer: string) {
         response => response.json()
     ).then(async response => {
         let isLatest = false;
-        for (let i = 0; i < response['result'].length; i++) {
-            if (response['result'][i]['input']) {
-                if (response['result'][i]['input'].slice(0, 10) === '0x60806040'
-                    || response['result'][i]['input'].slice(0, 10) === '0x61016060'
-                    || response['result'][i]['input'].slice(0, 10) === '0x60a06040'
-                    || response['result'][i]['input'].slice(0, 10) === '0x60c06040'
-                    || response['result'][i]['input'].slice(0, 10) === '0x6b204fce'
-                    || response['result'][i]['input'].slice(0, 10) === '0x6b033b2e'
-                    || response['result'][i]['input'].slice(0, 10) === '0x6bdef376'
+        for (let i = 0; i < response?.result.length; i++) {
+            if (response?.result[i]?.input) {
+                if (response?.result[i]?.input.slice(0, 10) === '0x60806040'
+                    || response?.result[i]?.input.slice(0, 10) === '0x61016060'
+                    || response?.result[i]?.input.slice(0, 10) === '0x60a06040'
+                    || response?.result[i]?.input.slice(0, 10) === '0x60c06040'
+                    || response?.result[i]?.input.slice(0, 10) === '0x6b204fce'
+                    || response?.result[i]?.input.slice(0, 10) === '0x6b033b2e'
+                    || response?.result[i]?.input.slice(0, 10) === '0x6bdef376'
                     && isLatest === false) {
-                    const createTxn = response['result'][i];
+                    const createTxn = response?.result[i];
                     const getCa = (keyName: keyof typeof createTxn) => {
                         return createTxn[keyName]
                     };
                     isLatest = true;
                     return getCa('contractAddress')
-                } else if (response['result'][i]['input'].slice(0, 10) === '0xf346c18d') {
-                    const createTxn = response['result'][i];
+                } else if (response?.result[i]?.input.slice(0, 10) === '0xf346c18d') {
+                    const createTxn = response?.result[i];
                     const getCa = (keyName: keyof typeof createTxn) => {
                         return createTxn[keyName]
                     };
@@ -201,7 +201,7 @@ async function getCAbyDeployer(deployer: string) {
                         const caDec = '0x' + `${caHex[2].slice(26, caHex[2].length)}`
                         return caDec
                     }
-                } else if (response['result'][i]['input'].slice(0, 10) === '0x715018a6') {
+                } else if (response?.result[i]?.input.slice(0, 10) === '0x715018a6') {
                     isRenounced = true;
                 }
             }
@@ -288,10 +288,10 @@ async function getInitialLp(CA: any, deployer: string, lpAddress: any) {
                 let isLatest = false;
                 let initLpTemp = [];
                 for (let i = 0; i < response['result'].length; i++) {
-                    if (response['result'][i]['input']) {
-                        if (response['result'][i]['input'].slice(0, 10) === '0xf305d719'
-                            ||response['result'][i]['input'].slice(0, 10) === '0xe8e33700'
-                            || response['result'][i]['input'].slice(0, 10) === '0x51c6590a'
+                    if (response?.result[i]?.input) {
+                        if (response?.result[i]?.input.slice(0, 10) === '0xf305d719'
+                            ||response?.result[i]?.input.slice(0, 10) === '0xe8e33700'
+                            || response?.result[i]?.input.slice(0, 10) === '0x51c6590a'
                             && response['result'][i]['to'] === CA
                             && isLatest === false) {
                             const createTxn = response['result'][i];
@@ -327,10 +327,10 @@ async function getInitialLp(CA: any, deployer: string, lpAddress: any) {
             let isLatest = false;
             let initLpTemp = [];
             for (let i = 0; i < response['result'].length; i++) {
-                if (response['result'][i]['input']) {
-                    if (response['result'][i]['input'].slice(0, 10) === '0xf305d719'
-                        || response['result'][i]['input'].slice(0, 10) === '0xe8e33700'
-                        || response['result'][i]['input'].slice(0, 10) === '0x51c6590a'
+                if (response?.result[i]?.input) {
+                    if (response?.result[i]?.input.slice(0, 10) === '0xf305d719'
+                        || response?.result[i]?.input.slice(0, 10) === '0xe8e33700'
+                        || response?.result[i]?.input.slice(0, 10) === '0x51c6590a'
                         && isLatest === false) {
                         const createTxn = response['result'][i];
                         const getCa = (keyName: keyof typeof createTxn) => {
@@ -481,8 +481,8 @@ async function getCAbyTxLock(txHash: string, lpAddress: string, deployer: string
     ).then(async response => {
         let isLatest = false;
         for (let i = 0; i < response['result'].length; i++) {
-            if (response['result'][i]['input']) {
-                if (response['result'][i]['input'].slice(0, 10) === '0x715018a6') {
+            if (response?.result[i]?.input) {
+                if (response?.result[i]?.input.slice(0, 10) === '0x715018a6') {
                     isRenounced = true;
                 }
             }
@@ -681,8 +681,8 @@ export async function getLockInfoUNCX(txHash: any) {
             response => response.json()
         ).then(async response => {
             for (let i = 0; i < response['result'].length; i++) {
-                if (response['result'][i]['input']) {
-                    if (response['result'][i]['input'].slice(0, 10) === '0x715018a6') {
+                if (response?.result[i]?.input) {
+                    if (response?.result[i]?.input.slice(0, 10) === '0x715018a6') {
                         isRenounced = true;
                     }
                 }
