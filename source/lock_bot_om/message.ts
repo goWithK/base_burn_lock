@@ -28,6 +28,10 @@ export class Message {
         const marketCapLock = await this._dataPool.marketCapLock;
         const totalTxns = await this._dataPool.totalTxns;
         const totalHolders = await this._dataPool.totalHolders;
+        if (totalHolders < 6) {
+            return ''
+        }
+        
         const topHolders = await this._dataPool.topHolders;
         const liveTime = await this._dataPool.liveTime;
         const clog = await this._dataPool.clog;
