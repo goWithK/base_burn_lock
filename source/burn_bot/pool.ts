@@ -175,7 +175,8 @@ export class DataPool {
             }
             
             const totalLp = Number(resp?.result[0]?.value)
-            this._burnPercent = Number(this._burnAmount) / Number(totalLp) * 100;
+            console.log(Number(this._burnAmount)/10**(18), Number(totalLp)/10**(18- Number(await this.tokenDecimal)))
+            this._burnPercent = Number(this._burnAmount/10**18) / Number(totalLp) * 100;
 
             return this._burnPercent
         })();
@@ -310,7 +311,7 @@ export class DataPool {
                 console.error(e)
                 throw Error(`[pool.tokenTotalSupply] Cannot get total supply of token: ${await this.contractAddress}`)
             }
-            this._tokenTotalSupply = Number(totalSupply) / 10**(18 - Number(await this.tokenTotalSupply))
+            this._tokenTotalSupply = Number(totalSupply) / 10**(18 - Number(await this.tokenDecimal))
 
             return this._tokenTotalSupply
         })();
@@ -488,7 +489,7 @@ export class DataPool {
             }
 
             await this._fulFillTransactionData();
-            return (await this.priceToken * ((await this.tokenTotalSupply - this._burnAmount/10**(18 - Number(await this.tokenTotalSupply)))))
+            return (await this.priceToken * ((await this.tokenTotalSupply - this._burnAmount/10**18)))
         })();
     }
 

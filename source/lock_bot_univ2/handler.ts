@@ -48,7 +48,7 @@ export class LockBotHandlerV2 implements IBotCommand {
         while (true) {
             try {
                 await this._startSendingMessagesSushi(true, chatId, ctx, bot);
-                await this._startSendingMessagesUniv2(true, chatId, ctx, bot);
+                // await this._startSendingMessagesUniv2(true, chatId, ctx, bot);
                 await TimeHelper.delay(4);
             }
             catch (e) {
@@ -64,8 +64,8 @@ export class LockBotHandlerV2 implements IBotCommand {
         }
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-        const startblock = Number(currentBlock)-3;
-        // const startblock = 12799844;
+        // const startblock = Number(currentBlock)-3;
+        const startblock = 13622498;
 
         const resp = await BaseScanAPI.getLockUNCXsushi(currentBlock, startblock);
 

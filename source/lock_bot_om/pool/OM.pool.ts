@@ -412,10 +412,10 @@ export class OMDataPool implements IDataPool{
                 for (let i = 0; i < holderLimit; i++) {
                     if (resp.data[i]?.wallet_address === await this.deployerAddress) {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2)}`;
+                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2)}`;
                     } else if (resp.data[i]?.wallet_address !== '0x000000000000000000000000000000000000dead') {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2);
+                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
                     }
                 }
                 this._holderBalance = holdersBalance
@@ -587,7 +587,7 @@ export class OMDataPool implements IDataPool{
             }
 
             let clog = await getClog(await this.contractAddress);
-            this._clog = (Number(clog) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+            this._clog = (Number(clog)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
             if (Number(this._clog) > 100) {
                 this._clog = 'SCAM'
             }

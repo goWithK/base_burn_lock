@@ -31,6 +31,7 @@ export class Message {
             const verified = await this._dataPool.verified;
             const initialLp = await this._dataPool.initialLp;
             const liquidity = await this._dataPool.liquidity;
+            
 
             let title = this._ctx.emoji`${"fire"} <b>LP BURNT</b> | ${tokenName} | ${tokenSymbol} \n\n`
             let ca_msg = `<a href="https://basescan.org/address/${contractAddress}">CA:</a> <code>${contractAddress}</code>\n`;

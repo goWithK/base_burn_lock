@@ -37,10 +37,6 @@ export class BurnBotHandler implements IBotCommand {
             }
         }
 
-        // for (let i=0; i<1; i++)
-        // {
-        //     await this._startSendingMessages(true, chatId, ctx, bot);
-        // }
     }
 
     public registerHelpCommand(bot: Bot<ParseModeFlavor<BotContext>>): void {
@@ -67,8 +63,8 @@ export class BurnBotHandler implements IBotCommand {
         }
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
-        // const startblock = Number(currentBlock)-3;
-        const startblock = 13245147;
+        const startblock = Number(currentBlock)-3;
+        // const startblock = 13245147;
         await TimeHelper.delay(1.5);
         const resp = await BaseScanAPI.getBurnEvent(currentBlock, startblock);
 
