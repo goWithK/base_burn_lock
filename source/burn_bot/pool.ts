@@ -98,7 +98,6 @@ export class DataPool {
     public get pairAddress(): Promise<string> {
         return (async () => {
             if (this._pairAddress) {
-                console.log('Pair: ', this._pairAddress)
                 return this._pairAddress
             }
 
@@ -310,7 +309,7 @@ export class DataPool {
                 console.error(e)
                 throw Error(`[pool.tokenTotalSupply] Cannot get total supply of token: ${await this.contractAddress}`)
             }
-            this._tokenTotalSupply = Number(totalSupply) / 10**18
+            this._tokenTotalSupply = Number(totalSupply) / 10**(18 - Number(await this.tokenDecimal))
 
             return this._tokenTotalSupply
         })();
@@ -361,10 +360,10 @@ export class DataPool {
                 for (let i = 0; i < holderLimit; i++) {
                     if (resp.data[i]?.wallet_address === await this.deployerAddress) {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2)}`;
+                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2)}`;
                     } else if (resp.data[i]?.wallet_address !== '0x000000000000000000000000000000000000dead') {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2);
+                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
                     }
                 }
                 this._holderBalance = holdersBalance
@@ -488,7 +487,7 @@ export class DataPool {
             }
 
             await this._fulFillTransactionData();
-            return (await this.priceToken * ((await this.tokenTotalSupply - this._burnAmount/10**18)))
+            return (await this.priceToken * await this.tokenTotalSupply)
         })();
     }
 
@@ -538,7 +537,7 @@ export class DataPool {
             }
 
             let clog = await getClog(await this.contractAddress);
-            this._clog = (Number(clog) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+            this._clog = (Number(clog)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
             if (Number(this._clog) > 100) {
                 this._clog = 'SCAM'
             }
@@ -549,7 +548,8 @@ export class DataPool {
     private async _checkPairorContract(address: string) {
         var contract: string;
         try {
-            contract = await getCAbyPair(address);
+            this._contractAddress = await getCAbyPair(address);
+            this._pairAddress = address
         } catch(e) {
             console.log(`${address} is not pair address`)
             this._contractAddress = address
@@ -652,8 +652,8 @@ export class DataPool {
         this._deployerAddress = transaction?.from.toString();
         const txReceipt = await this._web3.eth.getTransactionReceipt(this._transactionHash);
         if (txReceipt?.logs[0]){
-            this._pairAddress = txReceipt?.logs[0].address!;
-            await this._checkPairorContract(this._pairAddress)
+            let _pairAddress = txReceipt?.logs[0].address!;
+            await this._checkPairorContract(_pairAddress)
             const amountLpBurnHex = txReceipt?.logs[0].data!;
             this._burnAmount = parseInt(String(amountLpBurnHex), 16);
         }

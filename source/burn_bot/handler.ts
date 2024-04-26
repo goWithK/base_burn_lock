@@ -29,7 +29,7 @@ export class BurnBotHandler implements IBotCommand {
         while (true) {
             try {
                 await this._startSendingMessages(true, chatId, ctx, bot);
-                await TimeHelper.delay(4.5);
+                await TimeHelper.delay(2.5);
             }
             catch (e) {
                 console.error(e);
@@ -37,10 +37,6 @@ export class BurnBotHandler implements IBotCommand {
             }
         }
 
-        // for (let i=0; i<1; i++)
-        // {
-        //     await this._startSendingMessages(true, chatId, ctx, bot);
-        // }
     }
 
     public registerHelpCommand(bot: Bot<ParseModeFlavor<BotContext>>): void {
@@ -68,14 +64,14 @@ export class BurnBotHandler implements IBotCommand {
 
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
         const startblock = Number(currentBlock)-3;
-        // const startblock = 13198521;
-        await TimeHelper.delay(1);
+        // const startblock = 13462421;
+        await TimeHelper.delay(1.5);
         const resp = await BaseScanAPI.getBurnEvent(currentBlock, startblock);
 
         if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
             return;
         }
-
+        
         for (let i = 0; i < resp?.result.length; i++) {
             const transactionHash: string = resp.result[i]?.transactionHash;
             const txData = await this._web3.eth.getTransaction(transactionHash);
@@ -83,9 +79,9 @@ export class BurnBotHandler implements IBotCommand {
             if (txInput.slice(0, 10) === '0xa9059cbb') {
                 const dataPool = new DataPool(transactionHash);
                 const message = new Message(dataPool, ctx);
-
+                
                 const msgContent = await message.getMsgContent();
-
+                
                 if (msgContent != ''){
                     await bot.api.sendMessage(
                         chatId,
@@ -93,7 +89,7 @@ export class BurnBotHandler implements IBotCommand {
                         { parse_mode: "HTML" },
                     );
                 } else {
-                    console.log(`Error in tx: ${transactionHash}`)
+                    console.log(`Error in tx: ${transactionHash} or holders <= 5`)
                 }
             }
         }

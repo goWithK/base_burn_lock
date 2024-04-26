@@ -132,7 +132,6 @@ export class Univ2DataPool implements IDataPool {
             }
 
             const lockData = await this.lockInfo;
-            console.log(lockData)
             this._pairAddress = lockData?.args[0];
             console.log('Pair: ', this._pairAddress)
             return this._pairAddress
@@ -361,7 +360,7 @@ export class Univ2DataPool implements IDataPool {
                 console.error(e)
                 throw Error(`[univ2.pool.tokenTotalSupply] Cannot get total supply of token: ${await this.contractAddress}`)
             }
-            this._tokenTotalSupply = Number(totalSupply) / 10**18
+            this._tokenTotalSupply = Number(totalSupply) / 10**(18 - Number(await this.tokenDecimal))
 
             return this._tokenTotalSupply
         })();
@@ -399,7 +398,7 @@ export class Univ2DataPool implements IDataPool {
                 resp = await ChainBaseAPI.getTopHolders(chainId, await this.contractAddress)
             } catch(e) {
                 console.error(e)
-                throw Error(`[OM.pool.topHolders] Cannot get top holders of token: ${await this.contractAddress}`)
+                throw Error(`[Univ2.pool.topHolders] Cannot get top holders of token: ${await this.contractAddress}`)
             }
 
             if (resp?.data !== null){
@@ -411,10 +410,10 @@ export class Univ2DataPool implements IDataPool {
                 for (let i = 0; i < holderLimit; i++) {
                     if (resp.data[i]?.wallet_address === await this.deployerAddress) {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2)}`;
+                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2)}`;
                     } else if (resp.data[i]?.wallet_address !== '0x000000000000000000000000000000000000dead') {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2);
+                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
                     }
                 }
                 this._holderBalance = holdersBalance
@@ -480,7 +479,7 @@ export class Univ2DataPool implements IDataPool {
                     throw Error('[univ2.pool.priceToken] Cannot get data from DexScreener')
                 }
             }
-            console.log(this._dexData)
+            
             this._priceToken = Number(this._dexData?.pair?.priceUsd)
             return this._priceToken
         })();
@@ -585,7 +584,7 @@ export class Univ2DataPool implements IDataPool {
             }
 
             let clog = await getClog(await this.contractAddress);
-            this._clog = (Number(clog) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+            this._clog = (Number(clog)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
             if (Number(this._clog) > 100) {
                 this._clog = 'SCAM'
             }

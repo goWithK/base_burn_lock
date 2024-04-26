@@ -231,7 +231,7 @@ async function filterAddLiquidityTxn(txns: any) {
                 && isLatest === false) {
                 const createTxn = txns?.result[i];
                 const getCa = (keyName: keyof typeof createTxn) => {
-                    return createTxn?.keyName
+                    return createTxn[keyName]
                 };
                 isLatest = true;
                 initLp.push(Number(getCa('value')) / 10 ** 18)

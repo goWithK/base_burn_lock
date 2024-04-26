@@ -39,6 +39,15 @@ export class BaseScanAPI {
         return resp.json();
     }
 
+    //new lock address
+    public static async getLockCustomLock1(currentBlock: number, startBlock: number) {
+        const urlLockCustom1 = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startBlock}&toBlock=${currentBlock}&address=0x4F0Fd563BE89ec8C3e7D595bf3639128C0a7C33A&topic0=0xeb65d0f36862bbd8763c5e2c983c9d753267d223eee35a224d8d0a9d7ef433a2&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY_1}`
+
+        const resp = await fetch(urlLockCustom1);
+
+        return resp.json();
+    }
+
     public static async getBurnEvent(currentBlock: number, startBlock: number) {
         const UrlTransferBurn = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startBlock}&toBlock=${currentBlock}&topic0=0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef&topic0_2_opr=and&topic2=0x000000000000000000000000000000000000000000000000000000000000dead&page=1&offset=100&apikey=${process.env.API_BASESCAN_KEY_1}`
 
