@@ -539,7 +539,7 @@ export class DataPool {
             }
 
             let clog = await getClog(await this.contractAddress);
-            this._clog = (Number(clog) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+            this._clog = (Number(clog)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
             if (Number(this._clog) > 100) {
                 this._clog = 'SCAM'
             }
