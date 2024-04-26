@@ -98,7 +98,6 @@ export class DataPool {
     public get pairAddress(): Promise<string> {
         return (async () => {
             if (this._pairAddress) {
-                console.log('Pair: ', this._pairAddress)
                 return this._pairAddress
             }
 
@@ -175,8 +174,7 @@ export class DataPool {
             }
             
             const totalLp = Number(resp?.result[0]?.value)
-            console.log(Number(this._burnAmount)/10**(18), Number(totalLp)/10**(18- Number(await this.tokenDecimal)))
-            this._burnPercent = Number(this._burnAmount/10**18) / Number(totalLp) * 100;
+            this._burnPercent = Number(this._burnAmount) / Number(totalLp) * 100;
 
             return this._burnPercent
         })();
@@ -362,10 +360,10 @@ export class DataPool {
                 for (let i = 0; i < holderLimit; i++) {
                     if (resp.data[i]?.wallet_address === await this.deployerAddress) {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2)}`;
+                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2)}`;
                     } else if (resp.data[i]?.wallet_address !== '0x000000000000000000000000000000000000dead') {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance) / Number(await this.tokenTotalSupply) /10**18 * 100).toFixed(2);
+                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
                     }
                 }
                 this._holderBalance = holdersBalance
@@ -489,7 +487,7 @@ export class DataPool {
             }
 
             await this._fulFillTransactionData();
-            return (await this.priceToken * ((await this.tokenTotalSupply - this._burnAmount/10**18)))
+            return (await this.priceToken * await this.tokenTotalSupply)
         })();
     }
 
@@ -550,7 +548,8 @@ export class DataPool {
     private async _checkPairorContract(address: string) {
         var contract: string;
         try {
-            contract = await getCAbyPair(address);
+            this._contractAddress = await getCAbyPair(address);
+            this._pairAddress = address
         } catch(e) {
             console.log(`${address} is not pair address`)
             this._contractAddress = address
