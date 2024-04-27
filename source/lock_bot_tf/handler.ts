@@ -6,6 +6,7 @@ import { BotContext, IBotCommand } from "../shared/type";
 import { Bot } from "grammy";
 import { ParseModeFlavor } from "@grammyjs/parse-mode";
 import { TFDataPool } from "./pool/TF.pool";
+import { Custom1DataPool } from "./pool/Custom1.pool";
 
 
 export class LockBotHandlerTF implements IBotCommand {
@@ -48,7 +49,8 @@ export class LockBotHandlerTF implements IBotCommand {
         while (true) {
             try {
                 await this._startSendingMessagesTF(true, chatId, ctx, bot);
-                await TimeHelper.delay(4.5);
+                await this._startSendingMessagesCustomLock1(true, chatId, ctx, bot);
+                await TimeHelper.delay(3.5);
             }
             catch (e) {
                 console.error(e);
@@ -75,6 +77,40 @@ export class LockBotHandlerTF implements IBotCommand {
         for (let i = 0; i < resp?.result.length; i++) {
             const transactionHash: string = resp.result[0]?.transactionHash;
             const dataPool = new TFDataPool(transactionHash, 'TF');
+            const message = new Message(dataPool, ctx);
+
+            const msgContent = await message.getMsgContent(bot);
+
+            if (msgContent != ''){
+                await bot.api.sendMessage(
+                    chatId,
+                    msgContent,
+                    { parse_mode: "HTML" },
+                );
+            } else {
+                console.log(`Error in tx: ${transactionHash}`)
+            }
+        }
+    }
+
+    private async _startSendingMessagesCustomLock1(trueOrFalse: boolean, chatId: any, ctx: any, bot: any): Promise<void> {
+        if (!trueOrFalse) {
+            return;
+        }
+
+        const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
+        const startblock = Number(currentBlock)-4;
+        // const startblock = 13240623;
+
+        const resp = await BaseScanAPI.getLockCustomLock1(currentBlock, startblock);
+
+        if (!(resp?.result !== 'Error!' && resp?.result?.length > 0)) {
+            return;
+        }
+
+        for (let i = 0; i < resp?.result.length; i++) {
+            const transactionHash: string = resp.result[0]?.transactionHash;
+            const dataPool = new Custom1DataPool(transactionHash, 'Custom1');
             const message = new Message(dataPool, ctx);
 
             const msgContent = await message.getMsgContent(bot);
