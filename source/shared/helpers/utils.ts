@@ -472,7 +472,7 @@ export async function getCAbyPair(pairAddress: string){
         token0 = await contract.methods.token0().call();
         token1 = await contract.methods.token1().call();
     } catch(e) {
-        console.error(e)
+        console.error('[utils.getCAbyPair] ',e)
         throw Error(`[utils.getCAbyPair] Cannot get CA from pair address ${pairAddress}`)
     }
 
