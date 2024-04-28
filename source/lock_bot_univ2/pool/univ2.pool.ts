@@ -548,9 +548,6 @@ export class Univ2DataPool implements IDataPool {
             }
 
             let burnAmount = 0;
-            if (await this.tokenDecimal == 18) {
-                return (await this.priceToken / 10**18 * await this.tokenTotalSupply)
-            }
             return (await this.priceToken * await this.tokenTotalSupply)
         })();
     }

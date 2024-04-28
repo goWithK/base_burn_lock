@@ -551,9 +551,6 @@ export class OMDataPool implements IDataPool{
                 return this._marketCapLock
             }
 
-            if (await this.tokenDecimal == 18) {
-                return (await this.priceToken / 10**18 * await this.tokenTotalSupply)
-            }
             return (await this.priceToken * await this.tokenTotalSupply)
         })();
     }
