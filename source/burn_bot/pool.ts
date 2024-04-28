@@ -174,7 +174,7 @@ export class DataPool {
             }
             
             const totalLp = Number(resp?.result[0]?.value)
-            
+
             this._burnPercent = Number(this._burnAmount) / Number(totalLp) * 100;
 
             return this._burnPercent
@@ -399,7 +399,8 @@ export class DataPool {
             }
 
             let LPinEth: any = await getInitLPbyPair(this._contractAddress, await this.deployerAddress)
-            if (LPinEth === undefined) {
+            
+            if (LPinEth === undefined || LPinEth === 'NaN') {
                 console.log('Get LP by Deployer Txns')
                 LPinEth = await getInitLPbyDeployer(await this.deployerAddress)
             }
@@ -502,11 +503,7 @@ export class DataPool {
             }
 
             await this._fulFillTransactionData();
-            if (await this.tokenDecimal == 18) {
-                return (await this.priceToken / 10**18 * await this.tokenTotalSupply)
-            }
             return (await this.priceToken * await this.tokenTotalSupply)
-            
         })();
     }
 
