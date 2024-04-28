@@ -363,6 +363,11 @@ export class Custom1DataPool implements IDataPool {
                 console.error(e)
                 throw Error(`[Custom1.pool.tokenTotalSupply] Cannot get total supply of token: ${await this.contractAddress}`)
             }
+            if (await this.tokenDecimal == 18) {
+                this._tokenTotalSupply = Number(totalSupply) / 10**18
+
+                return this._tokenTotalSupply
+            }
             this._tokenTotalSupply = Number(totalSupply) / 10**(18 - Number(await this.tokenDecimal))
 
             return this._tokenTotalSupply
@@ -413,10 +418,19 @@ export class Custom1DataPool implements IDataPool {
                 for (let i = 0; i < holderLimit; i++) {
                     if (resp.data[i]?.wallet_address === await this.deployerAddress) {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2)}`;
+                        if (await this.tokenDecimal == 18) {
+                            holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance)/10**18 / Number(await this.tokenTotalSupply) * 100).toFixed(2)}`;
+                        } else {
+                            holdersBalance[resp.data[i]?.wallet_address] = `Creator - ${(Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2)}`;
+                        }
+                        
                     } else if (resp.data[i]?.wallet_address !== '0x000000000000000000000000000000000000dead') {
                         let balance = resp.data[i]?.original_amount;
-                        holdersBalance[resp.data[i]?.wallet_address] = (Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+                        if (await this.tokenDecimal == 18) {
+                            holdersBalance[resp.data[i]?.wallet_address] = (Number(balance)/10**18 / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+                        } else {
+                            holdersBalance[resp.data[i]?.wallet_address] = (Number(balance)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+                        }
                     }
                 }
                 this._holderBalance = holdersBalance
@@ -540,7 +554,10 @@ export class Custom1DataPool implements IDataPool {
             }
 
             let burnAmount = 0;
-            return (await this.priceToken * (await this.tokenTotalSupply))
+            if (await this.tokenDecimal == 18) {
+                return (await this.priceToken / 10**18 * await this.tokenTotalSupply)
+            }
+            return (await this.priceToken * await this.tokenTotalSupply)
         })();
     }
 
@@ -590,7 +607,11 @@ export class Custom1DataPool implements IDataPool {
             }
 
             let clog = await getClog(await this.contractAddress);
-            this._clog = (Number(clog)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+            if (await this.tokenDecimal == 18) {
+                this._clog = (Number(clog)/10**18 / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+            } else {
+                this._clog = (Number(clog)/10**(18 - Number(await this.tokenDecimal)) / Number(await this.tokenTotalSupply) * 100).toFixed(2);
+            }
             if (Number(this._clog) > 100) {
                 this._clog = 'SCAM'
             }
