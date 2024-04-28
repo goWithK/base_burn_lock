@@ -5,6 +5,7 @@ import { LockBotHandlerTF } from './source/lock_bot_tf/handler';
 import { LockBotHandlerV2 } from './source/lock_bot_univ2/handler';
 import { LockBotHandlerV3 } from './source/lock_bot_univ3/handler';
 import { BurnBotHandler } from './source/burn_bot/handler';
+import { ListingBotHandler } from './source/listing_bot/handler';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -33,6 +34,11 @@ const runApp = async () => {
         } 
         else if (mode == 'burn') {
             const commandHandler = new BurnBotHandler();
+            const bot = new TelegramBot(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
+            bot.run();
+        }
+        else if (mode == 'listing') {
+            const commandHandler = new ListingBotHandler();
             const bot = new TelegramBot(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
             bot.run();
         }

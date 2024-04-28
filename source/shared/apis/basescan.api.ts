@@ -56,6 +56,32 @@ export class BaseScanAPI {
         return resp.json()
     }
 
+    public static async getListingUniV2(currentBlock: number, startBlock: number) {
+        const urlLockCustom1 = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startBlock}&toBlock=${currentBlock}&address=0x8909Dc15e40173Ff4699343b6eB8132c65e18eC6&topic0=0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY_1}`
+
+        const resp = await fetch(urlLockCustom1);
+
+        return resp.json();
+    }
+
+    public static async getListingUniV3(currentBlock: number, startBlock: number) {
+        const urlLockCustom1 = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startBlock}&toBlock=${currentBlock}&address=0x33128a8fC17869897dcE68Ed026d694621f6FDfD&topic0=0x783cca1c0412dd0d695e784568c96da2e9c22ff989357a2e8b1d9b2b4e6b7118&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY_1}`
+
+        const resp = await fetch(urlLockCustom1);
+
+        return resp.json();
+    }
+
+    public static async getListingSushi(currentBlock: number, startBlock: number) {
+        const urlLockCustom1 = `https://api.basescan.org/api?module=logs&action=getLogs&fromBlock=${startBlock}&toBlock=${currentBlock}&address=0x71524B4f93c58fcbF659783284E38825f0622859&topic0=0x0d3648bd0f6ba80134a33ba9275ac585d9d315f0ad8355cddefde31afa28d0e9&
+        topic0_2_opr=and&
+        topic2=0x0000000000000000000000004200000000000000000000000000000000000006&page=1&offset=1000&apikey=${process.env.API_BASESCAN_KEY_1}`
+
+        const resp = await fetch(urlLockCustom1);
+
+        return resp.json();
+    }
+
     public static async getBalanceAddress(address: string) {
         const urlGetBalance = `https://api.basescan.org/api?module=account&action=balance&address=${address}&tag=latest&apikey=${process.env.API_BASESCAN_KEY_2}`
 
