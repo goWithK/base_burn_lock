@@ -333,7 +333,7 @@ export class ListingDataPool implements IDataPoolListing{
 
                 return this._holderBalance
             } else {
-                this._holderBalance = {'Maybe rug': 'Maybe rug'}
+                this._holderBalance = {'CHECK AGAIN': 'CHECK AGAIN'}
                 return this._holderBalance
             }
         })();
