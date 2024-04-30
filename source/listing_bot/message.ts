@@ -23,16 +23,15 @@ export class Message {
         const devBalance = await this._dataPool.deployerBalance;
         const verified = await this._dataPool.verified;
         const initialLp = await this._dataPool.initialLp;
-        if (initialLp < 0.5 && initialLp > 1.5) {
+        if (Number(initialLp) < 0.5 && Number(initialLp) > 1.5) {
             return ''
         }
-        const liquidity = await this._dataPool.liquidity;
         
         console.log('Finish gathering message info')
 
         let title = this._ctx.emoji`<b>LISTING</b> | ${tokenName} | ${tokenSymbol} \n\n`
         let ca_msg = `<a href="https://basescan.org/address/${contractAddress}">CA:</a> <code>${contractAddress}</code>\n`;
-        let initLp_msg = this._ctx.emoji`${"money_with_wings"} Initial LP: ${initialLp}E ${"left_arrow_curving_right"} Current LP: ${formatter.format(liquidity)} \n`;
+        let initLp_msg = this._ctx.emoji`${"money_with_wings"} Initial LP: ${initialLp}E  \n`;
         let stats_msg = this._ctx.emoji`${"left_arrow_curving_right"} Holders: ${totalHolders}\n`;
         let verified_msg = this._ctx.emoji`Verified: ${"cross_mark"} \n`
         if (verified) { verified_msg = this._ctx.emoji`Verified: ${"check_mark_button"} \n` }
