@@ -67,7 +67,7 @@ export class ListingBotHandler implements IBotCommand {
         const currentBlock = await this._web3.eth.getBlockNumber().then(value => { return Number(value) });
         const startblock = Number(currentBlock)-3;
         // const currentBlock = 13751334;
-        // const startblock = 13751333;
+        // const startblock = 13835431;
         await TimeHelper.delay(1);
         const resp = await BaseScanAPI.getListingUniV2(currentBlock, startblock);
 
@@ -77,7 +77,10 @@ export class ListingBotHandler implements IBotCommand {
         
         for (let i = 0; i < resp?.result.length; i++) {
             const transactionHash: string = resp?.result[i]?.transactionHash;
-            const contractAddress: string = '0x' + `${resp?.result[i]?.topics[2].slice(26, resp?.result[i]?.topics[2].length)}`;
+            var contractAddress: string = '0x' + `${resp?.result[i]?.topics[2].slice(26, resp?.result[i]?.topics[2].length)}`;
+            if (contractAddress == '0x4200000000000000000000000000000000000006') {
+                contractAddress= '0x' + `${resp?.result[i]?.topics[1].slice(26, resp?.result[i]?.topics[1].length)}`;
+            }
             const pairAddress: string = '0x' + `${resp?.result[i]?.data.slice(26,66)}`;
 
             const dataPool = new ListingDataPool(transactionHash, contractAddress, pairAddress);
@@ -115,7 +118,10 @@ export class ListingBotHandler implements IBotCommand {
         
         for (let i = 0; i < resp?.result.length; i++) {
             const transactionHash: string = resp?.result[i]?.transactionHash;
-            const contractAddress: string = '0x' + `${resp?.result[i]?.topics[2].slice(26, resp?.result[i]?.topics[2].length)}`;
+            var contractAddress: string = '0x' + `${resp?.result[i]?.topics[2].slice(26, resp?.result[i]?.topics[2].length)}`;
+            if (contractAddress == '0x4200000000000000000000000000000000000006') {
+                contractAddress= '0x' + `${resp?.result[i]?.topics[1].slice(26, resp?.result[i]?.topics[1].length)}`;
+            }
             const pairAddress: string = '0x' + `${resp?.result[i]?.data.slice(90,130)}`;
 
             const dataPool = new ListingDataPool(transactionHash, contractAddress, pairAddress);
@@ -152,7 +158,10 @@ export class ListingBotHandler implements IBotCommand {
         
         for (let i = 0; i < resp?.result.length; i++) {
             const transactionHash: string = resp?.result[i]?.transactionHash;
-            const contractAddress: string = '0x' + `${resp?.result[i]?.topics[1].slice(26, resp?.result[i]?.topics[2].length)}`;
+            var contractAddress: string = '0x' + `${resp?.result[i]?.topics[2].slice(26, resp?.result[i]?.topics[2].length)}`;
+            if (contractAddress == '0x4200000000000000000000000000000000000006') {
+                contractAddress= '0x' + `${resp?.result[i]?.topics[1].slice(26, resp?.result[i]?.topics[1].length)}`;
+            }
             const pairAddress: string = '0x' + `${resp?.result[i]?.data.slice(26,66)}`;
 
             const dataPool = new ListingDataPool(transactionHash, contractAddress, pairAddress);
