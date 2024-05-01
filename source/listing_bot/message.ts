@@ -19,11 +19,14 @@ export class Message {
         const tokenName = await this._dataPool.tokenName;
         const tokenSymbol = await this._dataPool.tokenSymbol;
         const totalHolders = await this._dataPool.totalHolders;
+        if (Number(totalHolders) < 10) {
+            return ''
+        }
         const topHolders = await this._dataPool.topHolders;
         const devBalance = await this._dataPool.deployerBalance;
         const verified = await this._dataPool.verified;
         const initialLp = await this._dataPool.initialLp;
-        if (Number(initialLp) < 0.5 && Number(initialLp) > 1.5) {
+        if (Number(initialLp) < 0.5 || Number(initialLp) > 1.5) {
             return ''
         }
         
