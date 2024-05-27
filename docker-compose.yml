@@ -56,12 +56,22 @@ services:
   #   restart: unless-stopped
   #   entrypoint: ["npx", "ts-node-dev", "main.ts", "burn"]
 
-  listing:
+  # listing:
+  #   image: base
+  #   container_name: listing
+  #   depends_on:
+  #     - base
+  #   env_file:
+  #     - ./source/listing_bot/.env
+  #   restart: unless-stopped
+  #   entrypoint: ["npx", "ts-node-dev", "main.ts", "listing"]
+
+  filter:
     image: base
-    container_name: listing
+    container_name: filter
     depends_on:
       - base
     env_file:
-      - ./source/listing_bot/.env
+      - ./source/sol-filter/.env
     restart: unless-stopped
-    entrypoint: ["npx", "ts-node-dev", "main.ts", "listing"]
+    entrypoint: ["npx", "ts-node-dev", "main.ts", "filter"]
