@@ -33,9 +33,14 @@ export class FilterBotHandler{
                 await bot.api.deleteMessage(chatId, messageId)
                 return 
             }
+            // console.log('----', stringList.includes('Web'))
+            if (!stringList.includes('Web') || !stringList.includes('WEB')) {
+                await bot.api.deleteMessage(chatId, messageId)
+                return 
+            }
     
             for (let i=0; i < stringList.length; i++) {
-                if (!stringList[i].includes('Web')) {
+                if (!stringList[i].includes('Web') || !stringList[i].includes('WEB')) {
                     continue
                 }
                 
