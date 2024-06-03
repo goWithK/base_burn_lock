@@ -66,9 +66,9 @@ services:
   #   restart: unless-stopped
   #   entrypoint: ["npx", "ts-node-dev", "main.ts", "listing"]
 
-  filter:
+  solfilter:
     image: base
-    container_name: filter
+    container_name: solfilter
     depends_on:
       - base
     env_file:
@@ -76,7 +76,7 @@ services:
     restart: unless-stopped
     entrypoint: ["npx", "ts-node-dev", "main.ts", "solfilter"]
 
-  filter:
+  pumpfilter:
     image: base
     container_name: pumpfilter
     depends_on:
