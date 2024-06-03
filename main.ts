@@ -7,6 +7,7 @@ import { LockBotHandlerV3 } from './source/lock_bot_univ3/handler';
 import { BurnBotHandler } from './source/burn_bot/handler';
 import { ListingBotHandler } from './source/listing_bot/handler';
 import { FilterBotHandler } from './source/sol-filter/handler';
+import { PumpFilterBotHandler } from './source/pump-filter/handler';
 import TelegramBotFilter from './source/sol-filter/bot';
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -44,8 +45,13 @@ const runApp = async () => {
             const bot = new TelegramBot(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
             bot.run();
         }
-        else if (mode == 'filter') {
+        else if (mode == 'solfilter') {
             const commandHandler = new FilterBotHandler();
+            const bot = new TelegramBotFilter(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
+            bot.run();
+        }
+        else if (mode == 'pumpfilter') {
+            const commandHandler = new PumpFilterBotHandler();
             const bot = new TelegramBotFilter(commandHandler, process.env.BOT_KEY ? process.env.BOT_KEY : '');
             bot.run();
         }
