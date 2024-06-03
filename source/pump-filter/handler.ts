@@ -13,20 +13,21 @@ export class PumpFilterBotHandler{
     }
 
     public registerStartCommand(bot: Bot<ParseModeFlavor<BotContext>>): void {
+        console.log('PUMP')
         bot.on(':text', async (ctx: any) => {
             this.executeStartCommand(bot, ctx);
         });
     }
 
     public async executeStartCommand(bot: Bot<ParseModeFlavor<BotContext>>, ctx: any): Promise<void> {
-        if (ctx.update.message) {
-            const content = ctx.update.message.text;
-            const chatId = ctx.update.message.chat.id;
-            const messageId = ctx.update.message.message_id;
+        if (ctx.update.channel_post) {
+            const content = ctx.update.channel_post.text;
+            const chatId = ctx.update.channel_post.chat.id;
+            const messageId = ctx.update.channel_post.message_id;
     
             const regex = /[+-]?\d+(\.\d+)?/g;
             const stringList = content.split('\n');
-            // console.log(stringList)
+            console.log(stringList)
             // console.log('---', stringList[7])
             if (stringList[7].includes('SOL')) {
                 let boughtAmount = parseFloat(String(stringList[7].match(regex)));
