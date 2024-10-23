@@ -1,3 +1,7 @@
 *.env
+*.DS_Store
 /node_modules
 *test
+/source/snipe_detector
+/source/filter_money
+*dev.ts

@@ -5,76 +5,6 @@ services:
       context: .
       dockerfile: ./dockerfile
     image: base
-    
-  # lock_om:
-  #   image: base
-  #   container_name: lock_om
-  #   depends_on:
-  #     - base
-  #   env_file:
-  #     - ./source/lock_bot_om/.env
-  #   restart: unless-stopped
-  #   entrypoint: ["npx", "ts-node-dev", "main.ts", "lockOM"]
-
-  # lock_tf:
-  #   image: base
-  #   container_name: lock_tf
-  #   depends_on:
-  #     - base
-  #   env_file:
-  #     - ./source/lock_bot_tf/.env
-  #   restart: unless-stopped
-  #   entrypoint: ["npx", "ts-node-dev", "main.ts", "lockTF"]
-
-  # lockuniv2:
-  #   image: base
-  #   container_name: lockuniv2
-  #   depends_on:
-  #     - base
-  #   env_file:
-  #     - ./source/lock_bot_univ2/.env
-  #   restart: unless-stopped
-  #   entrypoint: ["npx", "ts-node-dev", "main.ts", "lockuniv2"]
-
-  # lockuniv3:
-  #   image: base
-  #   container_name: lockuniv3
-  #   depends_on:
-  #     - base
-  #   env_file:
-  #     - ./source/lock_bot_univ3/.env
-  #   restart: unless-stopped
-  #   entrypoint: ["npx", "ts-node-dev", "main.ts", "lockuniv3"]
-
-  # burn:
-  #   image: base
-  #   container_name: burn
-  #   depends_on:
-  #     - base
-  #   env_file:
-  #     - ./source/burn_bot/.env
-  #   restart: unless-stopped
-  #   entrypoint: ["npx", "ts-node-dev", "main.ts", "burn"]
-
-  # listing:
-  #   image: base
-  #   container_name: listing
-  #   depends_on:
-  #     - base
-  #   env_file:
-  #     - ./source/listing_bot/.env
-  #   restart: unless-stopped
-  #   entrypoint: ["npx", "ts-node-dev", "main.ts", "listing"]
-
-  # solfilter:
-  #   image: base
-  #   container_name: solfilter
-  #   depends_on:
-  #     - base
-  #   env_file:
-  #     - ./source/sol-filter/.env
-  #   restart: unless-stopped
-  #   entrypoint: ["npx", "ts-node-dev", "main.ts", "solfilter"]
 
   pumpfilter:
     image: base
@@ -82,6 +12,6 @@ services:
     depends_on:
       - base
     env_file:
-      - ./source/pump-filter/.env
+      - ./source/pump2ray_tracker/.env
     restart: unless-stopped
-    entrypoint: ["npx", "ts-node-dev", "main.ts", "pumpfilter"]
+    entrypoint: ["npx", "ts-node", "main.ts"]
